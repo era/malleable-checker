@@ -21,8 +21,17 @@ class CheckerCase:
             raise FailedAssertion(message)
 
 class CheckerExecutor:
-    pass
+    EXEC_TEMPLATE = '''
+    def assertion():
+        {assertion}
+    '''
 
+    def __init__(self, rule, alarm):
+        self.function = EXEC_TEMPLATE.format(assertion=rule)
+        self.alarm = alarm
+    
+    def exec(self):
+        self.alarm.check(self.function)
 class Alarm:
     
     def alarm(self, exception):
