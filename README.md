@@ -22,7 +22,7 @@ You can create a new rule:
 datasource = DataSource.find(id=32) # Query looking for users without an email
 checker = CheckerCase()
 
-checker.assertLessThan(datasource, 42, 'There should be less than 42 users in that state') # Otherwise we are going to alarm
+checker.assertLessThan(len(datasource), 42, 'There should be less than 42 users in that state') # Otherwise we are going to alarm
 
 ```
 
