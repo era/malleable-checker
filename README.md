@@ -12,17 +12,14 @@
 
 For example, with the following datasource:
 ```sql
-// Data source id = 32
+// Data source id = 32, name = 'users_with_email_null'
 SELECT username from users where email is null;
 ```
 
 You can create a new rule:
 
 ```python
-datasource = DataSource.find(id=32) # Query looking for users without an email
-checker = CheckerCase()
-
-checker.assertLessThan(len(datasource), 42, 'There should be less than 42 users in that state') # Otherwise we are going to alarm
+CheckerCase().assertLessThan(datasets['users_with_email_null'], 42, 'There should be less than 42 users in that state') # Otherwise we are going to alarm
 
 ```
 
