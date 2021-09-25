@@ -22,19 +22,20 @@ class CheckerCase:
 
 class CheckerExecutor:
    
-    def __init__(self, rule, alarm):
+    def __init__(self, rule, alarm, datasets):
         self.rule = rule
         self.alarm = alarm
+        self.datasets = datasets
     
     def exec(self):
-        self.alarm.check(self.rule)
+        self.alarm.check(self.rule, self.datasets)
 class Alarm:
     
     def alarm(self, exception):
         raise NotImplementedError
 
-    def check(self, rule):
+    def check(self, rule, datasets):
         try:
-            eval(rule)
+            exec(rule, {"datasets": datasets, "FailedAssertion": FailedAssertion})
         except FailedAssertion as e:
             self.alarm(e)
