@@ -36,6 +36,8 @@ class Alarm:
 
     def check(self, rule, datasets):
         try:
-            exec(rule, {"datasets": datasets, "FailedAssertion": FailedAssertion})
+            exec(rule, {"datasets": datasets, 
+                        "FailedAssertion": FailedAssertion,
+                        "CheckerCase": CheckerCase})
         except FailedAssertion as e:
             self.alarm(e)
