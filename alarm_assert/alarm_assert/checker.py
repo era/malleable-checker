@@ -20,6 +20,18 @@ class CheckerCase:
         if not expression:
             raise FailedAssertion(message)
 
+
+class Dataset:
+
+    def identity(self):
+        """The id or name of your dataset, this will be used by the rules"""
+        pass
+
+    def fetch(self):
+        """Fetch does whatever is needed to get the data, if it's a SQL dataset, it will call the database
+        and return an array with the results"""
+        pass
+
 class CheckerExecutor:
    
     def __init__(self, rule, alarm, datasets):
@@ -28,7 +40,14 @@ class CheckerExecutor:
         self.datasets = datasets
     
     def exec(self):
-        self.alarm.check(self.rule, self.datasets)
+        self.alarm.check(self.rule, self.fetch_datasets())
+
+    def fetch_datasets(self):
+        data = {}
+        for dataset in self.datasets:
+            data[dataset.identity()] = dataset.fetch()
+        return data
+
 class Alarm:
     
     def alarm(self, exception):
