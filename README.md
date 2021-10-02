@@ -27,6 +27,8 @@ This is executed hourly by a cron job, if the assertion throws an exception an A
 
 After saved, the alarm has two values red and green. Red means the checker failed and the alarm was triggered. Green means everything is ok.
 
+![](overview.png)
+
 ### Problems
 
 - Ideally the user defined python code should run in a container, with almost no permission and not able to import anything. Right now, I don't check anything, so it is not safe as it is.
