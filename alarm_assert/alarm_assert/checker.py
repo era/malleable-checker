@@ -1,4 +1,6 @@
-
+import pika
+from collections import namedtuple 
+import json
 
 class FailedAssertion(Exception):
     pass
@@ -53,10 +55,62 @@ class Alarm:
     def alarm(self, exception):
         raise NotImplementedError
 
+    def succeeds(self, rule):
+        raise NotImplementedError
+
     def check(self, rule, datasets):
         try:
             exec(rule, {"datasets": datasets, 
                         "FailedAssertion": FailedAssertion,
                         "CheckerCase": CheckerCase})
+            self.succeeds(rule) # we know what is the rule, we probably want to emitt with an id as well
         except FailedAssertion as e:
             self.alarm(e)
+
+class AlarmEventProducer(Alarm):
+    """This Alarm implementation sends a message to {topic} when the alarm fails or succeeds.
+    For now the implementation only supports rabbitmq"""
+
+    """
+    event = {
+        id: alarm_id,
+        result: succeeded|failed
+        error: Optional[str]
+        rule: str
+    }
+    """
+
+    SUCCEEDED_RESULT = 'succeeded'
+    FAILED_RESULT = 'failed'
+    
+    Event = namedtuple('Event', 'id result error rule')
+
+    def __init__(self, id, succeeded_topic, failed_topic, queue_connector):
+        self.id = id
+        self.succeeded_topic = succeeded_topic
+        self.failed_topic = failed_topic
+        self.queue_connector = queue_connector
+
+    def succeeds(self, rule):
+        self.emit(self.succeeded_topic, self.event(None, rule))
+    
+    def alarm(self, exception):
+        self.emit(self.failed_topic, self.event(repr(exception), None)) # TODO pass the rule as well
+
+    def event(self, error, rule):
+        result = AlarmEventProducer.SUCCEEDED_RESULT
+        if error is not None:
+            result = AlarmEventProducer.FAILED_RESULT
+        return AlarmEventProducer.Event(self.id, result, error, rule)
+
+    def emit(self, topic, event):
+        self.queue_connector.publish(topic, event)
+
+class RabbitMQConnector():
+
+    def __init__(self, connection_params):
+        self.connection = pika.BlockingConnection(pika.ConnectionParameters(connection_params.host)) # pika.ConnectionParameters()
+        self.channel = self.connection.channel()
+    
+    def publish(self, topic, event):
+        self.channel.basic_publish(exchange='', routing_key=topic, body=json.dumps(event))

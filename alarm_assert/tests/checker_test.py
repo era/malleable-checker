@@ -1,10 +1,15 @@
 import unittest
+from unittest.mock import Mock
+from unittest.mock import ANY
 
 import alarm_assert.checker as checker
 
 class FakeAlarm(checker.Alarm):
     def alarm(self, exception):
         raise exception
+    
+    def succeeds(self, _):
+        pass
 
 class Dataset(checker.Dataset):
     def __init__(self, name, data):
@@ -50,4 +55,40 @@ class TestCheckerExecutor(unittest.TestCase):
 
         self.assertEqual({a.identity(): a.fetch(),
                           b.identity(): b.fetch()}, datasets)
+
+class TestAlarmEventProducer(unittest.TestCase):
+
+    ALARM_ID = 123
+    FAILURE_TOPIC = 'failed'
+    SUCCEEDED_TOPIC = 'succeeded'
+
+    def alarm(self, mock_connector):
+        return checker.AlarmEventProducer(self.ALARM_ID, self.SUCCEEDED_TOPIC, self.FAILURE_TOPIC, mock_connector)
+
+    def test_if_emit_failure_event(self):
+         rule = "CheckerCase().assertTrue(False, 'Something bad happened')"
+         connector = Mock()
+         self.alarm(connector).check(rule, [])
+         connector.publish.assert_called_with(self.FAILURE_TOPIC, ANY)
+
+    def test_if_emit_succeeded_event(self):
+         rule = "CheckerCase().assertTrue(True, 'Something bad happened')"
+         connector = Mock()
+         self.alarm(connector).check(rule, [])
+         connector.publish.assert_called_with(self.SUCCEEDED_TOPIC, ANY)
         
+
+    def test_builds_correctly_succeeded_event(self):
+        event = self.alarm(None).event(None, 'MY_RULE')
+        self.assertEqual(TestAlarmEventProducer.ALARM_ID, event.id)
+        self.assertEqual('MY_RULE', event.rule)
+        self.assertEqual(None, event.error)
+        self.assertEqual(checker.AlarmEventProducer.SUCCEEDED_RESULT, event.result)
+
+    def test_builds_correctly_failed_event(self):
+        exception = Exception('test')
+        event = self.alarm(None).event(exception, 'MY_RULE')
+        self.assertEqual(TestAlarmEventProducer.ALARM_ID, event.id)
+        self.assertEqual('MY_RULE', event.rule)
+        self.assertEqual(exception, event.error)
+        self.assertEqual(checker.AlarmEventProducer.FAILED_RESULT, event.result)
