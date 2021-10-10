@@ -1,6 +1,7 @@
 import pika
 from collections import namedtuple 
 import json
+# import sqlite3
 
 class FailedAssertion(Exception):
     pass
@@ -34,6 +35,19 @@ class Dataset:
         and return an array with the results"""
         pass
 
+class SQLiteDataset(Dataset):
+
+    def __init__(self, conn, id, sql):
+        self.id = id
+        self.sql = sql
+        self.conn = conn
+    
+    def identity(self):
+        return self.id
+
+    def fetch(self):
+        cur = self.conn.cursor()
+        return cur.execute(self.sql).fetchall()
 class CheckerExecutor:
    
     def __init__(self, rule, alarm, datasets):
@@ -63,7 +77,7 @@ class Alarm:
             exec(rule, {"datasets": datasets, 
                         "FailedAssertion": FailedAssertion,
                         "CheckerCase": CheckerCase})
-            self.succeeds(rule) # we know what is the rule, we probably want to emitt with an id as well
+            self.succeeds(rule)
         except FailedAssertion as e:
             self.alarm(e)
 
@@ -85,17 +99,21 @@ class AlarmEventProducer(Alarm):
     
     Event = namedtuple('Event', 'id result error rule')
 
-    def __init__(self, id, succeeded_topic, failed_topic, queue_connector):
+    def __init__(self, id, succeeded_topic, failed_topic, queue_connector, rule):
         self.id = id
         self.succeeded_topic = succeeded_topic
         self.failed_topic = failed_topic
         self.queue_connector = queue_connector
+        self.rule = rule
 
     def succeeds(self, rule):
         self.emit(self.succeeded_topic, self.event(None, rule))
     
     def alarm(self, exception):
-        self.emit(self.failed_topic, self.event(repr(exception), None)) # TODO pass the rule as well
+        self.emit(self.failed_topic, self.event(repr(exception), self.rule))
+
+    def check(self, datasets):
+        return super().check(self.rule, datasets)
 
     def event(self, error, rule):
         result = AlarmEventProducer.SUCCEEDED_RESULT
