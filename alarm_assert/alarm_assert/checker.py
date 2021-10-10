@@ -108,6 +108,8 @@ class AlarmEventProducer(Alarm):
 
 class RabbitMQConnector():
 
+    ConnectionParams = namedtuple('ConnectionParams', 'host')
+
     def __init__(self, connection_params):
         self.connection = pika.BlockingConnection(pika.ConnectionParameters(connection_params.host)) # pika.ConnectionParameters()
         self.channel = self.connection.channel()
