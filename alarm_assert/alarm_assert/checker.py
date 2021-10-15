@@ -49,6 +49,7 @@ class SQLiteDataset(Dataset):
     def fetch(self):
         cur = self.conn.cursor()
         return cur.execute(self.sql).fetchall()
+
 class CheckerExecutor:
    
     def __init__(self, rule, alarm, datasets):
