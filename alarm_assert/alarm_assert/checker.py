@@ -1,7 +1,8 @@
 import pika
 from collections import namedtuple 
 import json
-# import sqlite3
+import os
+import sqlite3
 
 class FailedAssertion(Exception):
     pass
@@ -129,8 +130,24 @@ class RabbitMQConnector():
     ConnectionParams = namedtuple('ConnectionParams', 'host')
 
     def __init__(self, connection_params):
-        self.connection = pika.BlockingConnection(pika.ConnectionParameters(connection_params.host)) # pika.ConnectionParameters()
+        self.connection = pika.BlockingConnection(pika.ConnectionParameters(connection_params.host))
         self.channel = self.connection.channel()
     
     def publish(self, topic, event):
         self.channel.basic_publish(exchange='', routing_key=topic, body=json.dumps(event))
+
+# Execute this on a cronjob every 5 minutes
+if __name__ == '__main__':
+    rabbit_mq_env = RabbitMQConnector.ConnectionParams(os.environ['RABBITMQ_HOST'])
+    rabbitmq_connector = RabbitMQConnector(rabbit_mq_env)
+
+    sqlite_conn = sqlite3.connect(os.environ['SQLITE3_PATH'])
+
+    # for each checker in database
+      # init checker datasources
+      # init checker
+      # add to queue (so in the future we can even user priority if needed)
+
+    # for each item in the queue
+    #  Run checker
+    
