@@ -1,7 +1,7 @@
 # malleable-checker
 
 - A PoC of a [malleable system](https://malleable.systems/) that let's you build rules using a GUI or a script to assert your production data. If something does not pass an assertion, an alarm is triggered.
-- This is a toy project done on my free time, it's going to take a while to be ready for a demonstration.
+- This is a toy/pet 🐈‍⬛ project done on my free time, it's going to take a while to be ready for a demonstration.
 
 
 ## How it works?
