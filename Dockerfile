@@ -10,5 +10,5 @@ RUN mkdir -p /home/checker
 ADD ./alarm_assert /home/checker/alarm_assert
 ADD ./front_end /home/checker/front_end
 
-RUN cd /home/checker/alarm_assert/ && python3 setup.py install
-RUN cd /home/checker/front_end/ && python3 setup.py install
+RUN cd /home/checker/alarm_assert/ && pip3 install
+RUN cd /home/checker/front_end/ && pip3 install
