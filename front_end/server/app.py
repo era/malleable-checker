@@ -1,5 +1,4 @@
-from flask import Flask
-from flask import request
+from flask import Flask, render_template, request
 import os
 import sqlite3
 
@@ -9,6 +8,30 @@ db = None
 
 @app.route("/")
 def hello_world():
+    return render_template("index.html")
+
+@app.route("/checkers")
+def checkers():
+    return "<p>Hello, World!</p>"
+
+@app.route("/checkers/new")
+def new_checkers():
+    return "<p>Hello, World!</p>"
+
+@app.route("/checkers/<id>")
+def edit_checkers():
+    return "<p>Hello, World!</p>"
+
+@app.route("/datasources")
+def dataspirces():
+    return "<p>Hello, World!</p>"
+
+@app.route("/datasources/<id>")
+def edit_datasources():
+    return "<p>Hello, World!</p>"
+
+@app.route("/datasources/new")
+def new_datasources():
     return "<p>Hello, World!</p>"
 
 @app.route('/api/checker', methods = ['POST'])
