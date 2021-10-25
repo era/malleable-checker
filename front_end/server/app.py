@@ -40,5 +40,5 @@ def create_datasource():
 
 
 if __name__ == '__main__':
-   app.run(debug=True)
-   db = sqlite3.connect(os.environ['SQLITE3_PATH'])
+   #db = sqlite3.connect(os.environ['SQLITE3_PATH'])
+   app.run(host='0.0.0.0', debug=True)

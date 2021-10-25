@@ -9,6 +9,11 @@ RUN mkdir -p /home/checker
 
 ADD ./alarm_assert /home/checker/alarm_assert
 ADD ./front_end /home/checker/front_end
+ADD ./run.sh /home/checker/run.sh
 
-RUN cd /home/checker/alarm_assert/ && pip3 install
-RUN cd /home/checker/front_end/ && pip3 install
+RUN cd /home/checker/alarm_assert/ && pip3 install -e .
+RUN cd /home/checker/front_end/ && pip3 install -e .
+
+CMD python3 /home/checker/front_end/server/app.py
+
+EXPOSE 5000
