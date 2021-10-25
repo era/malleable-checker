@@ -1,0 +1,1 @@
+ docker run -p 5000:5000 checker sh /home/checker/run.sh
