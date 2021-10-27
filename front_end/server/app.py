@@ -25,7 +25,7 @@ def edit_checkers():
     return "<p>Hello, World!</p>"
 
 @app.route("/datasources")
-def dataspirces():
+def datasources():
     return "<p>Hello, World!</p>"
 
 @app.route("/datasources/<id>")
@@ -61,6 +61,9 @@ def create_checker():
 
 @app.route('/api/datasource', methods = ['POST'])
 def create_datasource():
+    """ Create a datasource based on a JSON request as:
+    {sql: str, name: str}
+    """
     pass
 
 
