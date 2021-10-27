@@ -3,6 +3,9 @@ from collections import namedtuple
 import json
 import os
 import sqlite3
+import pathlib
+
+from configparser import ConfigParser
 
 class FailedAssertion(Exception):
     pass
@@ -139,10 +142,18 @@ class RabbitMQConnector():
 
 # Execute this on a cronjob every 5 minutes
 if __name__ == '__main__':
-    rabbit_mq_env = RabbitMQConnector.ConnectionParams(os.environ['RABBITMQ_HOST'])
+
+    config_object = ConfigParser()
+    
+    # TODO stop assuming relative path
+    path = str(pathlib.Path().absolute()) + "/"
+
+    config_object.read(path + os.environ['CONFIG'])
+
+    rabbit_mq_env = RabbitMQConnector.ConnectionParams(path + config_object['CHECKER']['RABBITMQ_HOST'])
     rabbitmq_connector = RabbitMQConnector(rabbit_mq_env)
 
-    sqlite_conn = sqlite3.connect(os.environ['SQLITE3_PATH'])
+    sqlite_conn = sqlite3.connect(path + config_object['CHECKER']['SQLITE_PATH'])
 
     # for each checker in database
       # init checker datasources
