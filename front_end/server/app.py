@@ -1,4 +1,6 @@
 from flask import Flask, render_template, request
+from configparser import ConfigParser
+import pathlib
 import os
 import sqlite3
 
@@ -32,7 +34,7 @@ def edit_datasources():
 
 @app.route("/datasources/new")
 def new_datasources():
-    return "<p>Hello, World!</p>"
+    return render_template("datasource_form.html")
 
 @app.route('/api/checker', methods = ['POST'])
 def create_checker():
@@ -63,5 +65,14 @@ def create_datasource():
 
 
 if __name__ == '__main__':
-   #db = sqlite3.connect(os.environ['SQLITE3_PATH'])
-   app.run(host='0.0.0.0', debug=True)
+    config_object = ConfigParser()
+    
+    path = str(pathlib.Path().absolute()) + "/"
+
+    
+
+    config_object.read(path + os.environ['CONFIG'])
+
+    print(path + config_object['CHECKER']['SQLITE_PATH'])
+    db = sqlite3.connect(path + config_object['CHECKER']['SQLITE_PATH'])
+    app.run(host='0.0.0.0', debug=True)
