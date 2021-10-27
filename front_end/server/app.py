@@ -67,12 +67,11 @@ def create_datasource():
 if __name__ == '__main__':
     config_object = ConfigParser()
     
+    # TODO stop assuming relative path
     path = str(pathlib.Path().absolute()) + "/"
-
-    
 
     config_object.read(path + os.environ['CONFIG'])
 
-    print(path + config_object['CHECKER']['SQLITE_PATH'])
     db = sqlite3.connect(path + config_object['CHECKER']['SQLITE_PATH'])
+
     app.run(host='0.0.0.0', debug=True)
