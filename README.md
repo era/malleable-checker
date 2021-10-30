@@ -33,6 +33,7 @@ After saved, the alarm has two values red and green. Red means the checker faile
 
 - Ideally the user defined python code should run in a container, with almost no permission and not able to import anything. Right now, I don't check anything, so it is not safe as it is.
   - This could be implemented by getting the ast (https://docs.python.org/3/library/ast.html) and removing things like import from it.
+- Checkers should run on read-only mode, if you have multiple replicas, it should probably read the secondary/read-only.
 
 ## On Images
 
