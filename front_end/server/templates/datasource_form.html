@@ -1,7 +1,33 @@
-<form>
+<script type="text/javascript" src="{{ url_for('static', filename='js/jquery-3.6.0.min.js') }}"></script>
+<h1><a href="/">< Back to home</a></h1>
+<form id="ds">
     <input type="hidden" name="id" />
-    <input type="text" name="name" />
-    <textarea name="sql">
-    </textarea>
+    <label for="name">Name</label><input type="text" id="name" name="name" /> <br />
+    <label for="sql">SQL</label><textarea id="sql" name="sql">
+    </textarea> <br />
     <input type="submit" />
 </form>
+
+<script type="text/javascript">
+$(document).ready(function() {
+
+    $('#ds').submit(function() {
+        $.post({
+            "url": '/api/datasource',
+            "dataType": "json",
+            "data": JSON.stringify({'sql': $('#sql').val(), 'name': $('#name').val()}),
+            "success": function(data, textStatus) {
+                console.log(data)
+                console.log(textStatus)
+                alert('Your datasource was inserted: id' + data['id'])
+            },
+            "error" : function() {
+                alert('An error occurred :C')
+            }
+        })
+        return false;
+    })
+
+})
+
+</script>

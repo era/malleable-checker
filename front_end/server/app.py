@@ -4,9 +4,13 @@ import pathlib
 import os
 import sqlite3
 
-app = Flask(__name__)
 
-db = None
+# TODO stop assuming relative path
+path = str(pathlib.Path().absolute()) + "/"
+
+app = Flask(__name__,static_folder=os.path.dirname(__file__) + '/static')
+
+db_path = None
 
 @app.route("/")
 def hello_world():
@@ -41,6 +45,7 @@ def create_checker():
     """ Create a checker based on a JSON request as:
     {desc: str, datasources: int[]}
     """
+    db = sqlite3.connect(db_path)
 
     create_checker_sql = ''' INSERT INTO checker(desc, status)
               VALUES(?, 'GREEN') '''
@@ -49,11 +54,11 @@ def create_checker():
     body = request.get_json(force=True)
 
     cur = db.cursor()
-    cur.execute(create_checker_sql, body['desc'])
+    cur.execute(create_checker_sql, [body['desc']])
     checker_id = cur.lastrowid
 
     for datasource in body['datasources']:
-        cur.execute(assign_checker_ds_sql, checker_id, datasource)
+        cur.execute(assign_checker_ds_sql, [checker_id, datasource])
     
     db.commit()
 
@@ -64,11 +69,13 @@ def create_datasource():
     """ Create a datasource based on a JSON request as:
     {sql: str, name: str}
     """
+    db = sqlite3.connect(db_path)
     create_datasource_sql = "INSERT INTO datasource(name, code) VALUES (?, ?)"
     body = request.get_json(force=True)
+    print(body)
 
     cur = db.cursor()
-    cur.execute(create_datasource_sql, body['name'], body['sql'])
+    cur.execute(create_datasource_sql, [body['name'], body['sql']])
 
     id = cur.lastrowid
 
@@ -80,12 +87,8 @@ def create_datasource():
 
 if __name__ == '__main__':
     config_object = ConfigParser()
-    
-    # TODO stop assuming relative path
-    path = str(pathlib.Path().absolute()) + "/"
 
     config_object.read(path + os.environ['CONFIG'])
-
-    db = sqlite3.connect(path + config_object['CHECKER']['SQLITE_PATH'])
+    db_path = path + config_object['CHECKER']['SQLITE_PATH']
 
     app.run(host='0.0.0.0', debug=True)
