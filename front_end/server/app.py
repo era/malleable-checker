@@ -30,7 +30,14 @@ def edit_checkers():
 
 @app.route("/datasources")
 def datasources():
-    return "<p>Hello, World!</p>"
+    db = sqlite3.connect(db_path)
+
+    cur = db.cursor()
+    cur.execute("SELECT name, code, id FROM datasource")
+
+    datasources = cur.fetchall()
+
+    return render_template("list_datasource.html", datasources=datasources)
 
 @app.route("/datasources/<id>")
 def edit_datasources():
