@@ -53,7 +53,7 @@ def create_checker():
     checker_id = cur.lastrowid
 
     for datasource in body['datasources']:
-        cur.execute(assign_checker_ds_sql, [checker_id, datasource])
+        cur.execute(assign_checker_ds_sql, checker_id, datasource)
     
     db.commit()
 
@@ -64,7 +64,18 @@ def create_datasource():
     """ Create a datasource based on a JSON request as:
     {sql: str, name: str}
     """
-    pass
+    create_datasource_sql = "INSERT INTO datasource(name, code) VALUES (?, ?)"
+    body = request.get_json(force=True)
+
+    cur = db.cursor()
+    cur.execute(create_datasource_sql, body['name'], body['sql'])
+
+    id = cur.lastrowid
+
+    db.commit()
+
+    return {'status': 'OK', 'id': id}
+
 
 
 if __name__ == '__main__':
