@@ -18,7 +18,15 @@ def hello_world():
 
 @app.route("/checkers")
 def checkers():
-    return "<p>Hello, World!</p>"
+
+    db = sqlite3.connect(db_path)
+
+    cur = db.cursor()
+    cur.execute("SELECT id, desc FROM checker")
+
+    checkers = cur.fetchall()
+
+    return render_template("list_checkers.html", checkers=checkers)
 
 @app.route("/checkers/new")
 def new_checkers():
