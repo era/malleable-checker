@@ -83,8 +83,10 @@ class Alarm:
                         "FailedAssertion": FailedAssertion,
                         "CheckerCase": CheckerCase})
             self.succeeds(rule)
+            return True
         except FailedAssertion as e:
             self.alarm(e)
+            return False
 
 class AlarmEventProducer(Alarm):
     """This Alarm implementation sends a message to {topic} when the alarm fails or succeeds.
