@@ -22,11 +22,33 @@ def checkers():
 
 @app.route("/checkers/new")
 def new_checkers():
-    return "<p>Hello, World!</p>"
+    db = sqlite3.connect(db_path)
+
+    cur = db.cursor()
+    cur.execute("SELECT name, id FROM datasource")
+
+    datasources = cur.fetchall()
+
+    return render_template("checker_form.html", datasources=datasources, checker=[], selected_datasources=[])
 
 @app.route("/checkers/<id>")
-def edit_checkers():
-    return "<p>Hello, World!</p>"
+def edit_checkers(id):
+    db = sqlite3.connect(db_path)
+
+    cur = db.cursor()
+    cur.execute("SELECT name, id FROM datasource")
+
+    datasources = cur.fetchall()
+
+    cur.execute("SELECT id, desc FROM checker where id = ?", [id])
+
+    checker = cur.fetchone()
+
+    selected_datasources = cur.execute("SELECT datasource_id  FROM checker_datasource where checker_id = ?", [id])
+
+    selected_datasources = [ds[0] for ds in selected_datasources]
+
+    return render_template("checker_form.html", datasources=datasources, checker=checker, selected_datasources=selected_datasources)
 
 @app.route("/datasources")
 def datasources():
@@ -55,7 +77,7 @@ def edit_datasources(id):
 def new_datasources():
     return render_template("datasource_form.html", ds=[])
 
-@app.route('/api/checker', methods = ['POST'])
+@app.route('/api/checker/', methods = ['POST'])
 def create_checker():
     """ Create a checker based on a JSON request as:
     {desc: str, datasources: int[]}
@@ -110,8 +132,6 @@ def update_datasource(id):
     cur = db.cursor()
     cur.execute(update_datasource_sql, [body['name'], body['sql'], id])
 
-
-    print(id)
     db.commit()
 
     return {'status': 'OK', 'id': id}
