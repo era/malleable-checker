@@ -1,9 +1,9 @@
 <script type="text/javascript" src="{{ url_for('static', filename='js/jquery-3.6.0.min.js') }}"></script>
 <h1><a href="/">< Back to home</a></h1>
 <form id="ds">
-    <input type="hidden" name="id" />
-    <label for="name">Name</label><input type="text" id="name" name="name" /> <br />
-    <label for="sql">SQL</label><textarea id="sql" name="sql">
+    <input type="hidden" name="id" id="id" value="{{ds[2]}}" />
+    <label for="name">Name</label><input type="text" id="name" name="name" value="{{ds[0]}}" /> <br />
+    <label for="sql">SQL</label><textarea id="sql" name="sql">{{ds[1]}}
     </textarea> <br />
     <input type="submit" />
 </form>
@@ -13,7 +13,7 @@ $(document).ready(function() {
 
     $('#ds').submit(function() {
         $.post({
-            "url": '/api/datasource',
+            "url": '/api/datasource/' + $('#id').val(),
             "dataType": "json",
             "data": JSON.stringify({'sql': $('#sql').val(), 'name': $('#name').val()}),
             "success": function(data, textStatus) {

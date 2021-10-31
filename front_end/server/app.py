@@ -40,12 +40,20 @@ def datasources():
     return render_template("list_datasource.html", datasources=datasources)
 
 @app.route("/datasources/<id>")
-def edit_datasources():
-    return "<p>Hello, World!</p>"
+def edit_datasources(id):
+    db = sqlite3.connect(db_path)
+
+    sql = "SELECT name, code, id from datasource where id = ?"
+
+    cur = db.cursor()
+
+    cur.execute(sql, [id])
+
+    return render_template("datasource_form.html", ds=cur.fetchone())
 
 @app.route("/datasources/new")
 def new_datasources():
-    return render_template("datasource_form.html")
+    return render_template("datasource_form.html", ds=[])
 
 @app.route('/api/checker', methods = ['POST'])
 def create_checker():
@@ -71,7 +79,7 @@ def create_checker():
 
     return {'status': 'OK', 'id': checker_id}
 
-@app.route('/api/datasource', methods = ['POST'])
+@app.route('/api/datasource/', methods = ['POST'])
 def create_datasource():
     """ Create a datasource based on a JSON request as:
     {sql: str, name: str}
@@ -79,7 +87,6 @@ def create_datasource():
     db = sqlite3.connect(db_path)
     create_datasource_sql = "INSERT INTO datasource(name, code) VALUES (?, ?)"
     body = request.get_json(force=True)
-    print(body)
 
     cur = db.cursor()
     cur.execute(create_datasource_sql, [body['name'], body['sql']])
@@ -90,6 +97,24 @@ def create_datasource():
 
     return {'status': 'OK', 'id': id}
 
+
+@app.route('/api/datasource/<id>', methods = ['POST'])
+def update_datasource(id):
+    """ Update a datasource based on a JSON request as:
+    {sql: str, name: str}
+    """
+    db = sqlite3.connect(db_path)
+    update_datasource_sql = "UPDATE datasource set name = ?, code = ? where id = ?"
+    body = request.get_json(force=True)
+
+    cur = db.cursor()
+    cur.execute(update_datasource_sql, [body['name'], body['sql'], id])
+
+
+    print(id)
+    db.commit()
+
+    return {'status': 'OK', 'id': id}
 
 
 if __name__ == '__main__':
