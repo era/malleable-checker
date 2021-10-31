@@ -112,6 +112,10 @@ class AlarmEventProducer(Alarm):
         self.failed_topic = failed_topic
         self.queue_connector = queue_connector
         self.rule = rule
+        
+        # Make sure the queues exist, otherwise messages will be dropped
+        self.queue_connector.queue_declare(succeeded_topic)
+        self.queue_connector.queue_declare(failed_topic)
 
     def succeeds(self, rule):
         self.emit(self.succeeded_topic, self.event(None, rule))
@@ -119,7 +123,7 @@ class AlarmEventProducer(Alarm):
     def alarm(self, exception):
         self.emit(self.failed_topic, self.event(repr(exception), self.rule))
 
-    def check(self, datasets):
+    def check(self, rule, datasets):
         return super().check(self.rule, datasets)
 
     def event(self, error, rule):
@@ -142,6 +146,9 @@ class RabbitMQConnector():
     def publish(self, topic, event):
         self.channel.basic_publish(exchange='', routing_key=topic, body=json.dumps(event))
 
+    def queue_declare(self, queue):
+        self.channel.queue_declare(queue=queue)
+
 # Execute this on a cronjob every 5 minutes
 if __name__ == '__main__':
 
@@ -152,7 +159,7 @@ if __name__ == '__main__':
 
     config_object.read(path + os.environ['CONFIG'])
 
-    rabbit_mq_env = RabbitMQConnector.ConnectionParams(path + config_object['CHECKER']['RABBITMQ_HOST'])
+    rabbit_mq_env = RabbitMQConnector.ConnectionParams(config_object['CHECKER']['RABBITMQ_HOST'])
     rabbitmq_connector = RabbitMQConnector(rabbit_mq_env)
 
     sqlite_conn = sqlite3.connect(path + config_object['CHECKER']['SQLITE_PATH'])
@@ -179,12 +186,16 @@ if __name__ == '__main__':
         
     for executor in executors:
         checker_id = executor.alarm.id
-        succeeded = executor.exec()
-        if succeeded:
-            status = 'GREEN'
-        else:
+        status = 'GREEN'
+        try:
+            succeeded = executor.exec()
+            if succeeded:
+                status = 'GREEN'
+            else:
+                status = 'RED'
+        except:
             status = 'RED'
-        
+            
         cur.execute('UPDATE checker set status = ? where id = ?', [status, checker_id])
     
     sqlite_conn.commit()

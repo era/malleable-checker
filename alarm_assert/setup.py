@@ -17,5 +17,8 @@ setup(
     license = "GPLv3",
     #url = "http://packages.python.org/something",
     packages=['alarm_assert', 'tests'],
+    install_requires=[
+          'pika',
+      ],
     long_description=read('README'),
 )
