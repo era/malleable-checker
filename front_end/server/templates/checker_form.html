@@ -1,0 +1,43 @@
+<script type="text/javascript" src="{{ url_for('static', filename='js/jquery-3.6.0.min.js') }}"></script>
+<h1><a href="/">< Back to home</a></h1>
+
+<form id="checker">
+    <input type="hidden" name="id" id="id" value="{{checker[0]}}" />
+    <label for="code">Write your code</label><br />
+    <textarea name="desc" id="desc">{{checker[1]}}</textarea><br />
+    <label>Select your datasources </label><br />
+    {% for ds in datasources %}
+        <input type="checkbox" {{ 'checked' if ds[1] in selected_datasources else 'Continue' }} name="datasources" value="{{ds[1]}}" /> {{ds[0]}} <br />
+    {% endfor %}
+    <input type="submit" />
+</form>
+
+
+
+<script type="text/javascript">
+$(document).ready(function() {
+
+    $('#checker').submit(function() {
+
+        let datasources = $('input:checkbox:checked').map(function() {
+                                return this.value;
+                            }).get();
+        $.post({
+            "url": '/api/checker/' + $('#id').val(),
+            "dataType": "json",
+            "data": JSON.stringify({'desc': $('#desc').val(), 'datasources': datasources}),
+            "success": function(data, textStatus) {
+                console.log(data)
+                console.log(textStatus)
+                alert('Your datasource was inserted: id' + data['id'])
+            },
+            "error" : function() {
+                alert('An error occurred :C')
+            }
+        })
+        return false;
+    })
+
+})
+
+</script>

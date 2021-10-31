@@ -22,7 +22,7 @@ def checkers():
     db = sqlite3.connect(db_path)
 
     cur = db.cursor()
-    cur.execute("SELECT id, desc FROM checker")
+    cur.execute("SELECT id, desc, status FROM checker")
 
     checkers = cur.fetchall()
 
