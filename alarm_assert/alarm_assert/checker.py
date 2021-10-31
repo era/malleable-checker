@@ -61,7 +61,7 @@ class CheckerExecutor:
         self.datasets = datasets
     
     def exec(self):
-        self.alarm.check(self.rule, self.fetch_datasets())
+        return self.alarm.check(self.rule, self.fetch_datasets())
 
     def fetch_datasets(self):
         data = {}
@@ -156,12 +156,37 @@ if __name__ == '__main__':
     rabbitmq_connector = RabbitMQConnector(rabbit_mq_env)
 
     sqlite_conn = sqlite3.connect(path + config_object['CHECKER']['SQLITE_PATH'])
+    cur = sqlite_conn.cursor()
+    cur.execute("SELECT id, desc, status FROM checker")
 
-    # for each checker in database
-      # init checker datasources
-      # init checker
-      # add to queue (so in the future we can even user priority if needed)
+    checkers = cur.fetchall()
 
-    # for each item in the queue
-    #  Run checker
+    executors = []
+
+    for checker in checkers:
+        alarm = AlarmEventProducer(checker[0], config_object['CHECKER']['SUCCEEDED_TOPIC'], config_object['CHECKER']['FAILED_TOPIC'], rabbitmq_connector, checker[1])
+
+        cur.execute("SELECT name, code FROM datasource, checker_datasource where checker_id = ? and datasource_id = id", [checker[0]])
+
+        datasources_code = cur.fetchall()
+
+        datasources = []
+
+        for ds_code in datasources_code:
+            datasources.append(SQLiteDataset(sqlite_conn, ds_code[0], ds_code[1]))
+
+        executors.append(CheckerExecutor(checker[1], alarm, datasources))
+        
+    for executor in executors:
+        checker_id = executor.alarm.id
+        succeeded = executor.exec()
+        if succeeded:
+            status = 'GREEN'
+        else:
+            status = 'RED'
+        
+        cur.execute('UPDATE checker set status = ? where id = ?', [status, checker_id])
+    
+    sqlite_conn.commit()
+    sqlite_conn.close()
     
