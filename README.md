@@ -61,6 +61,7 @@ After saved, the alarm has two values red and green. Red means the checker faile
 - To run the checkers manually, with docker exec open a Bash terminal and:
   - `cd home/checker/` 
   - `CONFIG=config.ini python3 alarm_assert/alarm_assert/checker.py`
+- The previous code is also what should go in the cronjob. I didn't commit a crontab file, but you just need to run the previous python script every 5 minutes.
 
 ## On Images
 
