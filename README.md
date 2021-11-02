@@ -34,17 +34,33 @@ After saved, the alarm has two values red and green. Red means the checker faile
 - Ideally the user defined python code should run in a container, with almost no permission and not able to import anything. Right now, I don't check anything, so it is not safe as it is.
   - This could be implemented by getting the ast (https://docs.python.org/3/library/ast.html) and removing things like import from it.
 - Checkers should run on read-only mode, if you have multiple replicas, it should probably read the secondary/read-only.
+- Need proper logging.
+
+### What is already done?
+
+- Front-end already works, tho the UX/UI is not done, right now we only have the forms (they are usable)
+- Backend already works, you just need to set the cronjob manually
+
+### How to use it?
+
+- To build the dock image just use: `./build_docker.sh`
+- To start the docker image just use `./start_docker.sh`
+- Frontend is at http://localhost:5000
+- RabbitMQ management at `http://localhost:15672` (guest username and password)
+- To run the checkers manually, with docker exec open a Bash terminal and:
+  - `cd home/checker/` 
+  - `CONFIG=config.ini python3 alarm_assert/alarm_assert/checker.py`
 
 ## On Images
 
 Basically, you type your SQL query:
 
 
-<img width="625" alt="datasource" src="https://user-images.githubusercontent.com/266034/134243490-6a8a14e6-5c68-4746-a564-47552d9ae1d9.png">
+![](create_dataset.png)
 
 Then you can either use the advanced option and write the rule in python or use a normal HTML form to create the rule:
 
-<img width="568" alt="rule" src="https://user-images.githubusercontent.com/266034/134243621-1ce23431-cd62-4c0a-9f24-2acf3013a9e6.png">
+![](create_checker.png)
 
 
 ## Structure
