@@ -23,6 +23,17 @@ CheckerCase().assertLessThan(datasets['users_with_email_null'], 42, 'There shoul
 
 ```
 
+The interesting bits is that you can use Python code for it, so you could define your own helpers and write things like:
+
+```python
+
+if bussiness_day():
+  CheckerCase().assertLessThan(datasets['users_with_email_null'], 42, 'There should be less than 42 users in that state')
+else:
+  CheckerCase().assertLessThan(datasets['users_with_email_null'], 5, 'There should be less than 5 users in that state')
+
+```
+
 This is executed hourly by a cron job, if the assertion throws an exception an Alarm will be fired. After the alarm is fired an action is triggered as defined by the user (email, slack, page).
 
 After saved, the alarm has two values red and green. Red means the checker failed and the alarm was triggered. Green means everything is ok.
