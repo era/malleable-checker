@@ -84,7 +84,7 @@ class Alarm:
                         "CheckerCase": CheckerCase})
             self.succeeds(rule)
             return True
-        except FailedAssertion as e:
+        except Exception as e:
             self.alarm(e)
             return False
 
