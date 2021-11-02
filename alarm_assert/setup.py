@@ -13,9 +13,8 @@ setup(
     version = "0.0.1",
     author = "Elias Granja",
     author_email = "me@elias.sh",
-    description = ("A simple set of functions to assert and alarm data"),
+    description = ("A simple set of functions to assert production data and create alarms"),
     license = "GPLv3",
-    #url = "http://packages.python.org/something",
     packages=['alarm_assert', 'tests'],
     install_requires=[
           'pika',
