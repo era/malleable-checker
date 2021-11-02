@@ -187,13 +187,11 @@ if __name__ == '__main__':
     for executor in executors:
         checker_id = executor.alarm.id
         status = 'GREEN'
-        try:
-            succeeded = executor.exec()
-            if succeeded:
-                status = 'GREEN'
-            else:
-                status = 'RED'
-        except:
+
+        succeeded = executor.exec()
+        if succeeded:
+            status = 'GREEN'
+        else:
             status = 'RED'
             
         cur.execute('UPDATE checker set status = ? where id = ?', [status, checker_id])
