@@ -68,18 +68,18 @@ class TestAlarmEventProducer(unittest.TestCase):
     def test_if_emit_failure_event(self):
          rule = "CheckerCase().assertTrue(False, 'Something bad happened')"
          connector = Mock()
-         self.alarm(connector, rule).check([])
+         self.alarm(connector, rule).check(None, [])
          connector.publish.assert_called_with(self.FAILURE_TOPIC, ANY)
 
     def test_if_emit_succeeded_event(self):
          rule = "CheckerCase().assertTrue(True, 'Something bad happened')"
          connector = Mock()
-         self.alarm(connector, rule).check([])
+         self.alarm(connector, rule).check(None, [])
          connector.publish.assert_called_with(self.SUCCEEDED_TOPIC, ANY)
         
 
     def test_builds_correctly_succeeded_event(self):
-        event = self.alarm(None, 'MY_RULE').event(None, 'MY_RULE')
+        event = self.alarm(Mock(), 'MY_RULE').event(None, 'MY_RULE')
         self.assertEqual(TestAlarmEventProducer.ALARM_ID, event.id)
         self.assertEqual('MY_RULE', event.rule)
         self.assertEqual(None, event.error)
@@ -87,7 +87,7 @@ class TestAlarmEventProducer(unittest.TestCase):
 
     def test_builds_correctly_failed_event(self):
         exception = Exception('test')
-        event = self.alarm(None, 'MY_RULE').event(exception, 'MY_RULE')
+        event = self.alarm(Mock(), 'MY_RULE').event(exception, 'MY_RULE')
         self.assertEqual(TestAlarmEventProducer.ALARM_ID, event.id)
         self.assertEqual('MY_RULE', event.rule)
         self.assertEqual(exception, event.error)
