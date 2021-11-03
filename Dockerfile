@@ -14,6 +14,12 @@ ADD ./config.ini /home/checker/config.ini
 ADD ./run.sh /home/checker/run.sh
 ADD ./example/checker.db /home/checker/example/checker.db
 
+ADD ./crontab_script.sh /home/checker/crontab_script.sh
+ADD ./checker-crontab /etc/cron.d/checker-crontab
+
+RUN chmod 0644 /etc/cron.d/checker-crontab &&\
+    crontab /etc/cron.d/checker-crontab
+
 RUN cd /home/checker/alarm_assert/ && pip3 install -e .
 RUN cd /home/checker/front_end/ && pip3 install -e .
 
