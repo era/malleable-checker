@@ -5,10 +5,10 @@ from unittest.mock import ANY
 import alarm_assert.checker as checker
 
 class FakeAlarm(checker.Alarm):
-    def alarm(self, exception):
+    def alarm(self, exception, _):
         raise exception
     
-    def succeeds(self, _):
+    def succeeds(self, _rule, _datasets):
         pass
 
 class Dataset(checker.Dataset):

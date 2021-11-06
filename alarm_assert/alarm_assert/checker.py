@@ -71,10 +71,10 @@ class CheckerExecutor:
 
 class Alarm:
     
-    def alarm(self, exception):
+    def alarm(self, exception, datasets):
         raise NotImplementedError
 
-    def succeeds(self, rule):
+    def succeeds(self, rule, datasets):
         raise NotImplementedError
 
     def check(self, rule, datasets):
@@ -82,10 +82,10 @@ class Alarm:
             exec(rule, {"datasets": datasets, 
                         "FailedAssertion": FailedAssertion,
                         "CheckerCase": CheckerCase})
-            self.succeeds(rule)
+            self.succeeds(rule, datasets)
             return True
         except Exception as e:
-            self.alarm(e)
+            self.alarm(e, datasets)
             return False
 
 class AlarmEventProducer(Alarm):
@@ -97,14 +97,15 @@ class AlarmEventProducer(Alarm):
         id: alarm_id,
         result: succeeded|failed
         error: Optional[str]
-        rule: str
+        rule: str,
+        datasets: list[list[str]]
     }
     """
 
     SUCCEEDED_RESULT = 'succeeded'
     FAILED_RESULT = 'failed'
     
-    Event = namedtuple('Event', 'id result error rule')
+    Event = namedtuple('Event', 'id result error rule dataset')
 
     def __init__(self, id, succeeded_topic, failed_topic, queue_connector, rule):
         self.id = id
@@ -117,23 +118,23 @@ class AlarmEventProducer(Alarm):
         self.queue_connector.queue_declare(succeeded_topic)
         self.queue_connector.queue_declare(failed_topic)
 
-    def succeeds(self, rule):
-        self.emit(self.succeeded_topic, self.event(None, rule))
+    def succeeds(self, rule, datasets):
+        self.emit(self.succeeded_topic, self.event(None, rule, datasets))
     
-    def alarm(self, exception):
-        self.emit(self.failed_topic, self.event(repr(exception), self.rule))
+    def alarm(self, exception, datasets):
+        self.emit(self.failed_topic, self.event(repr(exception), self.rule, datasets))
 
     def check(self, rule, datasets):
         return super().check(self.rule, datasets)
 
-    def event(self, error, rule):
+    def event(self, error, rule, dataset=None):
         result = AlarmEventProducer.SUCCEEDED_RESULT
         if error is not None:
             result = AlarmEventProducer.FAILED_RESULT
-        return AlarmEventProducer.Event(self.id, result, error, rule)
+        return AlarmEventProducer.Event(self.id, result, error, rule, dataset)
 
     def emit(self, topic, event):
-        self.queue_connector.publish(topic, event)
+        self.queue_connector.publish(topic, json.dumps(event._asdict()))
 
 class RabbitMQConnector():
 
