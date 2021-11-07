@@ -1,12 +1,11 @@
 from flask import Flask, render_template, request
 from configparser import ConfigParser
-import pathlib
 import os
 import sqlite3
+import json
 
-#TODO seems like some version of Flask does not like when
-# the response of a method is a dict and not a string
-app = Flask(__name__,static_folder=os.path.dirname(__file__) + '/static')
+
+app = Flask(__name__)
 
 db_path = None
 
@@ -105,7 +104,7 @@ def create_checker():
     
     db.commit()
 
-    return {'status': 'OK', 'id': checker_id}
+    return json.dumps({'status': 'OK', 'id': checker_id})
 
 @app.route('/api/datasource/', methods = ['POST'])
 def create_datasource():
@@ -123,7 +122,7 @@ def create_datasource():
 
     db.commit()
 
-    return {'status': 'OK', 'id': id}
+    return json.dumps({'status': 'OK', 'id': id})
 
 
 @app.route('/api/datasource/<id>', methods = ['POST'])
@@ -140,7 +139,7 @@ def update_datasource(id):
 
     db.commit()
 
-    return {'status': 'OK', 'id': id}
+    return json.dumps({'status': 'OK', 'id': id})
 
 
 if __name__ == '__main__':
