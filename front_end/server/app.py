@@ -4,10 +4,8 @@ import pathlib
 import os
 import sqlite3
 
-
-# TODO stop assuming relative path
-path = str(pathlib.Path().absolute()) + "/"
-
+#TODO seems like some version of Flask does not like when
+# the response of a method is a dict and not a string
 app = Flask(__name__,static_folder=os.path.dirname(__file__) + '/static')
 
 db_path = None
