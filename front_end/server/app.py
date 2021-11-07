@@ -148,7 +148,7 @@ def update_datasource(id):
 if __name__ == '__main__':
     config_object = ConfigParser()
 
-    config_object.read(path + os.environ['CONFIG'])
-    db_path = path + config_object['CHECKER']['SQLITE_PATH']
+    config_object.read(os.environ['CONFIG'])
+    db_path = config_object['CHECKER']['SQLITE_PATH']
 
     app.run(host='0.0.0.0', debug=True)

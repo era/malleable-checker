@@ -154,16 +154,13 @@ class RabbitMQConnector():
 if __name__ == '__main__':
 
     config_object = ConfigParser()
-    
-    # TODO stop assuming relative path
-    path = str(pathlib.Path().absolute()) + "/"
 
-    config_object.read(path + os.environ['CONFIG'])
+    config_object.read(os.environ['CONFIG'])
 
     rabbit_mq_env = RabbitMQConnector.ConnectionParams(config_object['CHECKER']['RABBITMQ_HOST'])
     rabbitmq_connector = RabbitMQConnector(rabbit_mq_env)
 
-    sqlite_conn = sqlite3.connect(path + config_object['CHECKER']['SQLITE_PATH'])
+    sqlite_conn = sqlite3.connect(config_object['CHECKER']['SQLITE_PATH'])
     cur = sqlite_conn.cursor()
     cur.execute("SELECT id, desc, status FROM checker")
 
