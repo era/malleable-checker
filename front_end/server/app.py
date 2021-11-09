@@ -53,7 +53,7 @@ def edit_checkers(id):
 
     selected_datasources = [ds[0] for ds in selected_datasources]
 
-    executions = cur.execute("SELECT run_at, status FROM checker_execution where checker_id = ?", [id])
+    executions = cur.execute("SELECT run_at, status FROM checker_execution where checker_id = ? order by run_at desc", [id])
 
     return render_template("checker_form.html", datasources=datasources, checker=checker, 
                                                 selected_datasources=selected_datasources, 
