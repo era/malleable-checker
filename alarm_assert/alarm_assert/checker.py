@@ -11,6 +11,10 @@ class FailedAssertion(Exception):
     pass
 
 class CheckerCase:
+
+    def assertEmpty(self, collection, message):
+        self.assertLessThan(collection, 1, message)
+
     def assertEqual(self, first_item, second_item, message):
         self.assertTrue(first_item == second_item, message)
 
