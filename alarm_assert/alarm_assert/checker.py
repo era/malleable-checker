@@ -193,6 +193,7 @@ if __name__ == '__main__':
             status = 'RED'
             
         cur.execute('UPDATE checker set status = ? where id = ?', [status, checker_id])
+        cur.execute("INSERT INTO CHECKER_EXECUTION (checker_id, run_at, status) VALUES(?, strftime('%Y-%m-%d %H:%M:%S', 'now'), ?)", [checker_id, status])
     
     sqlite_conn.commit()
     sqlite_conn.close()

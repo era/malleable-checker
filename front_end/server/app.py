@@ -49,11 +49,15 @@ def edit_checkers(id):
 
     checker = cur.fetchone()
 
-    selected_datasources = cur.execute("SELECT datasource_id  FROM checker_datasource where checker_id = ?", [id])
+    selected_datasources = cur.execute("SELECT datasource_id FROM checker_datasource where checker_id = ?", [id])
 
     selected_datasources = [ds[0] for ds in selected_datasources]
 
-    return render_template("checker_form.html", datasources=datasources, checker=checker, selected_datasources=selected_datasources)
+    executions = cur.execute("SELECT run_at, status FROM checker_execution where checker_id = ?", [id])
+
+    return render_template("checker_form.html", datasources=datasources, checker=checker, 
+                                                selected_datasources=selected_datasources, 
+                                                executions=executions)
 
 @app.route("/datasources")
 def datasources():

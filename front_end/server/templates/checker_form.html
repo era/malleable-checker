@@ -11,6 +11,19 @@
     {% endfor %}
     <input type="submit" />
 </form>
+{% if executions != None %}
+    <table border=4>
+        <tr>
+            <td>Executed at</td>
+            <td>Status</td>
+        </tr>
+        {% for execution in executions %}
+            <tr>
+                <td>{{execution[0]}}</td>
+                <td>{{execution[1]}}</td>
+            </tr>
+        {% endfor %}
+{% endif %}
 
 
 
