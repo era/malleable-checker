@@ -3,7 +3,7 @@ from collections import namedtuple
 import json
 import os
 import sqlite3
-import pathlib
+import ast
 
 from configparser import ConfigParser
 
@@ -83,7 +83,9 @@ class Alarm:
 
     def check(self, rule, datasets):
         try:
-            exec(rule, {"datasets": datasets, 
+            parsed = ParseCheckerCode(rule).removed_unwanted_nodes()
+            
+            exec(compile(parsed, filename="", mode="exec"), {"datasets": datasets, 
                         "FailedAssertion": FailedAssertion,
                         "CheckerCase": CheckerCase})
             self.succeeds(rule, datasets)
@@ -153,6 +155,58 @@ class RabbitMQConnector():
 
     def queue_declare(self, queue):
         self.channel.queue_declare(queue=queue)
+
+class ParseCheckerCode(ast.NodeTransformer):
+
+    def __init__(self, code):
+        self.tree = ast.parse(code)
+    
+    def removed_unwanted_nodes(self):
+        return self.visit(self.tree)
+    
+    def handle_assigns(self, node):
+        ids = [target.id for target in node.targets] 
+        local_variables =  [key for key in globals().keys()]
+        for id in ids:
+            # If the user is trying to change the value of any globals()
+            # they are probably doing something wrong
+            if id in local_variables:
+                return None
+        return node
+
+    def handle_single_assigns(self, node):
+        local_variables =  [key for key in locals().keys()]
+
+        # If the user is trying to change the value of any globals()
+        # they are probably doing something wrong
+        if node.target.id in local_variables:
+            return None
+
+        return node
+
+    def visit_FunctionDef(self, node):
+        return None
+    
+    def visit_AsyncFunctionDef(self, node):
+        return None
+    
+    def visit_ClassDef(self, node):
+        return None
+
+    def visit_Assign(self, node):
+        return self.handle_assigns(node)
+
+    def visit_AnnAssign(self, node):
+        return self.handle_assigns(node)
+
+    def visit_AugAssign(self, node):
+        return self.handle_assigns(node)
+
+    def visit_Import(self, node):
+        return None
+
+    def visit_ImportFrom(self, node):
+        return None
 
 # Execute this on a cronjob every 5 minutes
 if __name__ == '__main__':

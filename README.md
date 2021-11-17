@@ -42,8 +42,7 @@ After saved, the alarm has two values red and green. Red means the checker faile
 
 ### Problems
 
-- Ideally the user defined python code should run in a container, with almost no permission and not able to import anything. Right now, I don't check anything, so it is not safe as it is.
-  - This could be implemented by getting the ast (https://docs.python.org/3/library/ast.html) and removing things like import from it.
+- Ideally the user defined python code should run in a container, with almost no permission and not able to import anything. Right now the only protection it has is to remove any import AST node. So the user cannot import any module to write/read on disk or to access the sqlite3 database directly.
 - Checkers should run on read-only mode, if you have multiple replicas, it should probably read the secondary/read-only.
 - Need proper logging.
 
