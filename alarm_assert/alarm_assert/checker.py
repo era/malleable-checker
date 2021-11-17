@@ -197,10 +197,10 @@ class ParseCheckerCode(ast.NodeTransformer):
         return self.handle_assigns(node)
 
     def visit_AnnAssign(self, node):
-        return self.handle_assigns(node)
+        return self.handle_single_assigns(node)
 
     def visit_AugAssign(self, node):
-        return self.handle_assigns(node)
+        return self.handle_single_assigns(node)
 
     def visit_Import(self, node):
         return None
