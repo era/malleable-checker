@@ -9,9 +9,11 @@ app = Flask(__name__)
 
 db_path = None
 
+
 @app.route("/")
 def hello_world():
     return render_template("index.html")
+
 
 @app.route("/checkers")
 def checkers():
@@ -25,6 +27,7 @@ def checkers():
 
     return render_template("list_checkers.html", checkers=checkers)
 
+
 @app.route("/checkers/new")
 def new_checkers():
     db = sqlite3.connect(db_path)
@@ -34,7 +37,8 @@ def new_checkers():
 
     datasources = cur.fetchall()
 
-    return render_template("checker_form.html", datasources=datasources, checker=[], selected_datasources=[])
+    return render_template("checker_form.html", datasources=datasources, checker=[], selected_datasources=[], executions=None)
+
 
 @app.route("/checkers/<id>")
 def edit_checkers(id):
@@ -49,15 +53,18 @@ def edit_checkers(id):
 
     checker = cur.fetchone()
 
-    selected_datasources = cur.execute("SELECT datasource_id FROM checker_datasource where checker_id = ?", [id])
+    selected_datasources = cur.execute(
+        "SELECT datasource_id FROM checker_datasource where checker_id = ?", [id])
 
     selected_datasources = [ds[0] for ds in selected_datasources]
 
-    executions = cur.execute("SELECT run_at, status FROM checker_execution where checker_id = ? order by run_at desc", [id])
+    executions = cur.execute(
+        "SELECT run_at, status FROM checker_execution where checker_id = ? order by run_at desc", [id])
 
-    return render_template("checker_form.html", datasources=datasources, checker=checker, 
-                                                selected_datasources=selected_datasources, 
-                                                executions=executions)
+    return render_template("checker_form.html", datasources=datasources, checker=checker,
+                           selected_datasources=selected_datasources,
+                           executions=executions)
+
 
 @app.route("/datasources")
 def datasources():
@@ -69,6 +76,7 @@ def datasources():
     datasources = cur.fetchall()
 
     return render_template("list_datasource.html", datasources=datasources)
+
 
 @app.route("/datasources/<id>")
 def edit_datasources(id):
@@ -82,11 +90,13 @@ def edit_datasources(id):
 
     return render_template("datasource_form.html", ds=cur.fetchone())
 
+
 @app.route("/datasources/new")
 def new_datasources():
     return render_template("datasource_form.html", ds=[])
 
-@app.route('/api/checker/', methods = ['POST'])
+
+@app.route('/api/checker/', methods=['POST'])
 def create_checker():
     """ Create a checker based on a JSON request as:
     {desc: str, datasources: int[]}
@@ -96,7 +106,7 @@ def create_checker():
     create_checker_sql = ''' INSERT INTO checker(desc, status)
               VALUES(?, 'GREEN') '''
     assign_checker_ds_sql = "INSERT INTO CHECKER_DATASOURCE(checker_id, datasource_id) VALUES (?, ?)"
-    
+
     body = request.get_json(force=True)
 
     cur = db.cursor()
@@ -105,12 +115,13 @@ def create_checker():
 
     for datasource in body['datasources']:
         cur.execute(assign_checker_ds_sql, [checker_id, datasource])
-    
+
     db.commit()
 
     return json.dumps({'status': 'OK', 'id': checker_id})
 
-@app.route('/api/datasource/', methods = ['POST'])
+
+@app.route('/api/datasource/', methods=['POST'])
 def create_datasource():
     """ Create a datasource based on a JSON request as:
     {sql: str, name: str}
@@ -129,7 +140,7 @@ def create_datasource():
     return json.dumps({'status': 'OK', 'id': id})
 
 
-@app.route('/api/datasource/<id>', methods = ['POST'])
+@app.route('/api/datasource/<id>', methods=['POST'])
 def update_datasource(id):
     """ Update a datasource based on a JSON request as:
     {sql: str, name: str}
