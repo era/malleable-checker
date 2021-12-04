@@ -156,6 +156,8 @@ def update_datasource(id):
 
     return json.dumps({'status': 'OK', 'id': id})
 
+# TODO: Update CHECKER
+
 
 if __name__ == '__main__':
     config_object = ConfigParser()
