@@ -15,8 +15,8 @@
 </header>
 <body>
 
-    <h1><a href="/">< Back to home</a></h1>
-
+    {% include 'menu.html' %}
+    
     <form id="checker">
         <input type="hidden" name="id" id="id" value="{{checker[0]}}" />
         <label for="code" class="col-form-label">Write your code</label><br />

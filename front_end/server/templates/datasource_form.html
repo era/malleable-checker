@@ -14,8 +14,8 @@
   </style>
 </header>
 <body>
+    {% include 'menu.html' %}
 
-    <h1><a href="/">< Back to home</a></h1>
     <form id="ds">
         <input type="hidden" name="id" id="id" value="{{ds[2]}}" />
         <label for="name" class="col-form-label">Name</label><input class="form-control" type="text" id="name" name="name" value="{{ds[0]}}" /> <br />
