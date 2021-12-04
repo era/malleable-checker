@@ -156,7 +156,25 @@ def update_datasource(id):
 
     return json.dumps({'status': 'OK', 'id': id})
 
-# TODO: Update CHECKER
+
+@app.route('/api/checker/<id>', methods=['POST'])
+def update_checker(id):
+    delete_old_ds = "DELETE FROM CHECKER_DATASOURCE where checker_id = ?"
+    assign_checker_ds_sql = "INSERT INTO CHECKER_DATASOURCE(checker_id, datasource_id) VALUES (?, ?)"
+    update_checker = "UPDATE CHECKER SET desc=? where id=?"
+
+    body = request.get_json(force=True)
+    db = sqlite3.connect(db_path)
+
+    cur = db.cursor()
+    cur.execute(delete_old_ds, [id])
+    cur.execute(update_checker, [body['desc'], id])
+    for datasource in body['datasources']:
+        cur.execute(assign_checker_ds_sql, [id, datasource])
+
+    db.commit()
+
+    return json.dumps({'status': 'OK', 'id': id})
 
 
 if __name__ == '__main__':
