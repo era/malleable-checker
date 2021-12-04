@@ -2,6 +2,16 @@
 <header>
     {% include 'header.html' %}
     <script type="text/javascript" src="{{ url_for('static', filename='js/jquery-3.6.0.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='ace-builds/src-noconflict/ace.js') }}"></script>
+    <style type="text/css" media="screen">
+ 
+    #editor { 
+        border: 1px solid lightgray;
+		margin: auto;
+		height: 200px;
+		width: 80%;
+    }
+  </style> 
 </header>
 <body>
 
@@ -10,7 +20,8 @@
     <form id="checker">
         <input type="hidden" name="id" id="id" value="{{checker[0]}}" />
         <label for="code" class="col-form-label">Write your code</label><br />
-        <textarea cols="60" rows="16" name="desc" id="desc">{{checker[1]}}</textarea><br />
+        <div id="editor">{{checker[1]}}</div>
+        <textarea cols="60" rows="16" name="desc" id="desc" style="display: none;">{{checker[1]}}</textarea><br />
         <label class="col-form-label">Select your datasources </label><br />
         {% for ds in datasources %}
             <input type="checkbox" {{ 'checked' if ds[1] in selected_datasources else 'Continue' }} name="datasources" value="{{ds[1]}}" /> {{ds[0]}} <br />
@@ -35,6 +46,14 @@
 
     <script type="text/javascript">
     $(document).ready(function() {
+        var editor = ace.edit("editor");
+        editor.session.setMode("ace/mode/python");
+
+        var textarea = $('textarea[name="desc"]');
+        editor.getSession().on("change", function () {
+            textarea.val(editor.getSession().getValue());
+        });
+
 
         $('#checker').submit(function() {
 

@@ -2,6 +2,16 @@
 <header>
     {% include 'header.html' %}
     <script type="text/javascript" src="{{ url_for('static', filename='js/jquery-3.6.0.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='ace-builds/src-noconflict/ace.js') }}"></script>
+    <style type="text/css" media="screen">
+ 
+    #editor { 
+        border: 1px solid lightgray;
+		margin: auto;
+		height: 200px;
+		width: 80%;
+    }
+  </style>
 </header>
 <body>
 
@@ -10,13 +20,22 @@
         <input type="hidden" name="id" id="id" value="{{ds[2]}}" />
         <label for="name" class="col-form-label">Name</label><input class="form-control" type="text" id="name" name="name" value="{{ds[0]}}" /> <br />
         <label for="sql"  class="col-form-label">SQL</label><br />
-
-        <textarea id="sql" cols="60" rows="16" name="sql">{{ds[1]}}</textarea> <br />
+        <div id="editor">{{ds[1]}}</div>
+        <textarea id="sql" cols="60" rows="16" name="sql" style="display: none;">{{ds[1]}}</textarea> <br />
         <input type="submit" class="btn btn-primary" />
     </form>
 
     <script type="text/javascript">
     $(document).ready(function() {
+
+        var editor = ace.edit("editor");
+        editor.session.setMode("ace/mode/sql");
+
+        var textarea = $('textarea[name="sql"]');
+        editor.getSession().on("change", function () {
+            textarea.val(editor.getSession().getValue());
+        });
+
 
         $('#ds').submit(function() {
             $.post({
