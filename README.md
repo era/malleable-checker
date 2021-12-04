@@ -19,7 +19,9 @@ SELECT username from users where email is null;
 You can create a new rule:
 
 ```python
-CheckerCase().assertLessThan(datasets['users_with_email_null'], 42, 'There should be less than 42 users in that state') # Otherwise we are going to alarm
+CheckerCase().assertLessThan(datasets['users_with_email_null'], 
+  42, 
+  'There should be less than 42 users in that state') # Otherwise we are going to alarm
 
 ```
 
