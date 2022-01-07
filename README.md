@@ -82,3 +82,7 @@ The project have two main parts:
 
 - alarm_assert: package defining the DSL for rules and how they should be executed
 - front_end: package responsible for the UI and also the front-end database (saving the rules, datasources, rules states and results).
+
+
+## TODO
+- Check if it's a good idea to run the custom code in a WASM env.
