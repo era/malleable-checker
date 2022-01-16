@@ -6,7 +6,7 @@
     <script src="https://cdn.jsdelivr.net/pyodide/v0.19.0/full/pyodide.js"></script>
     <style type="text/css" media="screen">
  
-    #editor { 
+    #editor, .jsonEditor { 
         border: 1px solid lightgray;
 		margin: auto;
 		height: 200px;
@@ -27,6 +27,20 @@
         {% for ds in datasources %}
             <input type="checkbox" {{ 'checked' if ds[1] in selected_datasources else 'Continue' }} name="datasources" value="{{ds[1]}}" /> {{ds[0]}} <br />
         {% endfor %}
+        <hr />
+        <div>
+            <label class="col-form-label">Input your test cases (todo: in the future persist the tests)</label>
+            <div class="testCase">
+                <label class="col-form-label">Mock your dataset</label>
+                <div class="jsonEditor" id="jsonEditor">{'dataSetExample': [{'name': 'Maria'}]}</div>
+                <label class="col-form-label">Expected Error Message (empty if none):</label><br />
+                <input type="text" name="result" id="result" /> <br /> 
+<br /> <br /> <br /> 
+            </div>
+            
+            <input type="button" value="Run tests" class="btn btn-secondary" />
+        </div>
+        <hr />
         <input type="submit" class="btn btn-primary" />
     </form>
     {% if executions != None %}
@@ -49,6 +63,10 @@
     $(document).ready(function() {
         var editor = ace.edit("editor");
         editor.session.setMode("ace/mode/python");
+
+        var tests = ace.edit("jsonEditor");
+        tests.session.setMode("ace/mode/python");
+
 
         var textarea = $('textarea[name="desc"]');
         editor.getSession().on("change", function () {
