@@ -6,7 +6,7 @@
     <script src="https://cdn.jsdelivr.net/pyodide/v0.19.0/full/pyodide.js"></script>
     <style type="text/css" media="screen">
  
-    #editor, .jsonEditor { 
+    #editor, .jsonEditor, #output { 
         border: 1px solid lightgray;
 		margin: auto;
 		height: 200px;
@@ -33,12 +33,14 @@
             <div class="testCase">
                 <label class="col-form-label">Mock your dataset</label>
                 <div class="jsonEditor" id="jsonEditor">{'dataSetExample': [{'name': 'Maria'}]}</div>
-                <label class="col-form-label">Expected Error Message (empty if none):</label><br />
-                <input type="text" name="result" id="result" /> <br /> 
+                <br />
+                <label class="col-form-label">Output</label><br />
+                <textarea id="output" style = "margin-left: 130px;"></textarea>
 <br /> <br /> <br /> 
+
             </div>
             
-            <input type="button" value="Run tests" class="btn btn-secondary" />
+            <input type="button" value="Run tests" onclick="evaluateTest()" class="btn btn-secondary" />
         </div>
         <hr />
         <input type="submit" class="btn btn-primary" />
@@ -63,8 +65,9 @@
     $(document).ready(function() {
         var editor = ace.edit("editor");
         editor.session.setMode("ace/mode/python");
-
-        var tests = ace.edit("jsonEditor");
+    
+        // :C terrible, but ok for now
+        window.tests = ace.edit("jsonEditor");
         tests.session.setMode("ace/mode/python");
 
 
@@ -96,6 +99,68 @@
         })
 
     })
+
+    function evaluateTest() {
+        runPythonCode($('textarea[name="desc"]').val(), window.tests.getSession().getValue()) 
+
+    }
+    async function main() {
+        let pyodide = await loadPyodide({
+          indexURL: "https://cdn.jsdelivr.net/pyodide/v0.19.0/full/",
+        });
+        output.value += "Ready!\n";
+        return pyodide;
+      }
+      let pyodideReadyPromise = main();
+
+      async function evaluatePython(code) {
+        let pyodide = await pyodideReadyPromise;
+        try {
+          let output = pyodide.runPython(code);
+          addToOutput(output);
+        } catch (err) {
+          addToOutput(err);
+        }
+      }
+
+    function addToOutput(message) {
+        $('#output').val(message)
+    }
+
+    // This is far from ideal, just a poc for now
+    function runPythonCode(code, datasets) {
+        let datasetscode = `datasets = ${datasets}`;
+        let complete_code = `
+class FailedAssertion(Exception):
+    pass
+class CheckerCase:
+
+    def assertEmpty(self, collection, message):
+        return self.assertLessThan(collection, 1, message)
+
+    def assertEqual(self, first_item, second_item, message):
+        return self.assertTrue(first_item == second_item, message)
+
+    def assertLessThan(self, collection, max_size, message):
+        return self.assertTrue(len(collection) < max_size, message)
+
+    def assertGreaterThan(self, collection, size, message):
+        return self.assertTrue(len(collection) > size, message)
+
+    def assertFalse(self, expression, message):
+        return self.assertTrue(not expression, message)
+
+    def assertTrue(self, expression, message):
+        if not expression:
+            return message
+        else:
+            return "Test passed :)"
+${datasetscode}
+${code}
+        `;
+        evaluatePython(complete_code)
+
+    }
 
     </script>
 
