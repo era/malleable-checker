@@ -45,6 +45,7 @@ After saved, the alarm has two values red and green. Red means the checker faile
 ### Problems
 
 - Ideally the user defined python code should run in a container, with almost no permission and not able to import anything. Right now the only protection it has is to remove any import AST node. So the user cannot import any module to write/read on disk or to access the sqlite3 database directly.
+   - Although they can still run exec/eval in order to do that :P. I need to remove it. //TODO ;)
 - Checkers should run on read-only mode, if you have multiple replicas, it should probably read the secondary/read-only.
 - Need proper logging.
 
