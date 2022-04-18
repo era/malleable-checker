@@ -3,6 +3,25 @@
 - A PoC of a [malleable system](https://malleable.systems/) that let's you build rules using a GUI or a script to assert your production data. If something does not pass an assertion, an alarm is triggered.
 - This is a toy/pet 🐈‍⬛ project done on my free time, it's going to take a while to be ready for a demonstration.
 
+# Rust Version (main branch; active development)
+
+## System design
+
+A webservice written in Rust that executes your .wasm code, it exposes the following methods to the wasm env:
+
+### dataset(i32)
+=> datasets(id) returns the data from the query with `id`, you can use it to verify your assumptions about the state of your database 
+
+### fail(string)
+=> fail(message) should be called when an assertion fails in your code, this will trigger an alarm.
+
+### ok(string)
+=> ok(message) marks the assemption as success
+
+## Examples of the wasm code:
+
+
+# Python Version (branch: `python`; not supported anymore, still works though)
 
 ## How it works?
 
