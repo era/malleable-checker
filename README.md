@@ -7,7 +7,9 @@
 
 ## System design
 
-A webservice written in Rust that executes your .wasm code, it exposes the following methods to the wasm env:
+A webservice written in Rust that executes your .wasm code. The host (written in Rust) executes a wasm module written by the user. The host injects the datasets the user requested together with methods to signal if the host should send an event to a queue (which will potentially trigger an alarm). The module can be written in any language that compiles to wasm.
+
+It exposes the following methods to the wasm env:
 
 ### dataset(string)
 => dataset(name) returns the data from the query with named `name`, you can use it to verify your assumptions about the state of your database 
