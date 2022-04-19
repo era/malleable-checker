@@ -9,8 +9,8 @@
 
 A webservice written in Rust that executes your .wasm code, it exposes the following methods to the wasm env:
 
-### dataset(i32)
-=> datasets(id) returns the data from the query with `id`, you can use it to verify your assumptions about the state of your database 
+### dataset(string)
+=> dataset(name) returns the data from the query with named `name`, you can use it to verify your assumptions about the state of your database 
 
 ### fail(string)
 => fail(message) should be called when an assertion fails in your code, this will trigger an alarm.
@@ -19,6 +19,21 @@ A webservice written in Rust that executes your .wasm code, it exposes the follo
 => ok(message) marks the assemption as success
 
 ## Examples of the wasm code:
+
+
+## Wasm runtime
+We are using https://wasmtime.dev
+
+## TODO list
+- [ ] Webservice exposing HTML and the CRUD
+- [ ] Rust code to support hosting wasm checkers
+- [ ] Examples of checkers in some languages compiled to wasm
+- [ ] Run the checkers in a cron-like manner
+- [ ] Page with the failed/succeeded checkers
+- [ ] Allow users to create namespaces for checkers in order to organise it
+- [ ] Allow users to add runbooks to the checkers
+- [ ] Allow users to disable alarming from the UI
+- [ ] Run the checkers and send an event to a queue in order to alarm
 
 
 # Python Version (branch: `python`; not supported anymore, still works though)
