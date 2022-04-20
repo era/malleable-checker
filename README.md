@@ -6,6 +6,8 @@
 
 # Rust Version (main branch; active development)
 
+WARNING: Not even the README for the Rust/WebAssembly is ready and what is written here is mostly ideas/thoughts/things I need to remember while coding. For a better overview of the project scroll down until you find the Python version explanation.
+
 ## System design
 
 A webservice written in Rust that executes your .wasm code. The host (written in Rust) executes a wasm module written by the user. The host injects the datasets the user requested together with methods to signal if the host should send an event to a queue (which will potentially trigger an alarm). The module can be written in any language that compiles to wasm.
