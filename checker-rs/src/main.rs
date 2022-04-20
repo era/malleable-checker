@@ -1,19 +1,20 @@
-use std::error::Error;
+use std::{error::Error, sync::Arc, sync::Mutex};
 use wasmtime::*;
 
 #[derive(Debug, Default)]
 pub struct Checker {
-    pub failures: Vec<String>,
-    pub success: Vec<String>,
+    pub failures: Mutex<Vec<String>>,
+    pub success: Mutex<Vec<String>>,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-   exec_checker_from_file("hello.wasm", "check")?;
+   let checker = exec_checker_from_file("hello.wasm", "check")?;
+   println!("checker state: {:?}", checker);
    Ok(())
 }
 
-fn exec_checker_from_file(path: &str, func: &str) -> Result<Checker, Box<dyn Error>> {
-    let checker = Checker::default();
+fn exec_checker_from_file(path: &str, func: &str) -> Result<Arc<Checker>, Box<dyn Error>> {
+    let checker = Arc::new(Checker::default());
 
     // An engine stores and configures global compilation settings like
     // optimization level, enabled wasm features, etc.
@@ -31,7 +32,7 @@ fn exec_checker_from_file(path: &str, func: &str) -> Result<Checker, Box<dyn Err
     // now we just use `()`.
     let mut store = Store::new(&engine, 0);
 
-    let linker = create_linker(&engine);
+    let linker = create_linker(&engine, checker.clone());
 
     // With a compiled `Module` we can then instantiate it, creating
     // an `Instance` which we can actually poke at functions on.
@@ -53,12 +54,13 @@ fn exec_checker_from_file(path: &str, func: &str) -> Result<Checker, Box<dyn Err
 }
 
 
-fn create_linker<T>(engine: &Engine) -> Linker<T> {
+fn create_linker<T>(engine: &Engine, checker: Arc<Checker>) -> Linker<T> {
     let mut linker = Linker::new(&engine);
     // any param goes after caller
-    linker.func_wrap("host", "hello", |caller: Caller<'_, T>| {
+    let checker = checker.clone();
+    linker.func_wrap("host", "hello", move |caller: Caller<'_, T>| {
         println!("this comes from host (rust)");
+        checker.failures.lock().unwrap().push("it failed :C".to_string()); //TODO
     }).unwrap();//TODO
     linker
-    // (Instance::new(&mut store, module, &[host_hello.into()]).unwrap(), store) //TODO remove
 }
