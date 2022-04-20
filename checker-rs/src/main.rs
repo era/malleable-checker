@@ -1,6 +1,7 @@
 use std::error::Error;
 use wasmtime::*;
 
+#[derive(Debug, Default)]
 pub struct Checker {
     pub failures: Vec<String>,
     pub success: Vec<String>,
@@ -12,7 +13,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 }
 
 fn exec_checker_from_file(path: &str, func: &str) -> Result<Checker, Box<dyn Error>> {
-    let checker = Checker{failures: vec![], success: vec![]};
+    let checker = Checker::default();
 
     // An engine stores and configures global compilation settings like
     // optimization level, enabled wasm features, etc.
