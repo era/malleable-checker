@@ -61,6 +61,7 @@ fn create_linker(engine: &Engine) -> Linker<Checker> {
     // any param goes after caller
     // let checker = checker.clone();
     linker.func_wrap("checker", "fail", fail).unwrap();//TODO
+    linker.func_wrap("checker", "succeed", succeed).unwrap();//TODO
 
     linker
 }
@@ -68,6 +69,12 @@ fn create_linker(engine: &Engine) -> Linker<Checker> {
 fn fail(mut caller: Caller<'_, Checker>, ptr: i32, len: i32) -> Result<(), Trap> {
     let string = get_string(&mut caller, ptr, len)?;
     caller.data_mut().failures.push(string);
+    Ok(())
+}
+
+fn succeed(mut caller: Caller<'_, Checker>, ptr: i32, len: i32) -> Result<(), Trap> {
+    let string = get_string(&mut caller, ptr, len)?;
+    caller.data_mut().success.push(string);
     Ok(())
 }
 
