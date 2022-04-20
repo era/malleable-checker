@@ -2,6 +2,7 @@
 
 - A PoC of a [malleable system](https://malleable.systems/) that let's you build rules using a GUI or a script to assert your production data. If something does not pass an assertion, an alarm is triggered.
 - This is a toy/pet 🐈‍⬛ project done on my free time, it's going to take a while to be ready for a demonstration.
+- There are two versions, one written in Python (check branch python) that is feature complete, although it needs to be polished. The second version is under development and uses WebAssembly + Rust (Host).
 
 # Rust Version (main branch; active development)
 
