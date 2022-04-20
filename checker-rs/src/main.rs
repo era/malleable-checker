@@ -1,20 +1,22 @@
 use std::{error::Error, sync::Arc, sync::Mutex};
+use std::str;
 use wasmtime::*;
 
 #[derive(Debug, Default)]
 pub struct Checker {
-    pub failures: Mutex<Vec<String>>,
-    pub success: Mutex<Vec<String>>,
+    pub failures: Vec<String>,
+    pub success: Vec<String>,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-   let checker = exec_checker_from_file("hello.wasm", "check")?;
-   println!("checker state: {:?}", checker);
+   let store = exec_checker_from_file("examples/this_checker_always_fail.wasm", "check")?;
+   println!("checker state: {:?}", store.data());
    Ok(())
 }
 
-fn exec_checker_from_file(path: &str, func: &str) -> Result<Arc<Checker>, Box<dyn Error>> {
-    let checker = Arc::new(Checker::default());
+fn exec_checker_from_file(path: &str, func: &str) -> Result<Store<Checker>, Box<dyn Error>> {
+    //checker holds the state of the checks (failed/success)
+    let checker = Checker::default();
 
     // An engine stores and configures global compilation settings like
     // optimization level, enabled wasm features, etc.
@@ -30,16 +32,17 @@ fn exec_checker_from_file(path: &str, func: &str) -> Result<Arc<Checker>, Box<dy
     // items are stored within a `Store`, and it's what we'll always be using to
     // interact with the wasm world. Custom data can be stored in stores but for
     // now we just use `()`.
-    let mut store = Store::new(&engine, 0);
+    let mut store = Store::new(&engine, checker);
 
-    let linker = create_linker(&engine, checker.clone());
+    // the linker will link our host functions to the wasm env
+    let linker = create_linker(&engine);
 
     // With a compiled `Module` we can then instantiate it, creating
     // an `Instance` which we can actually poke at functions on.
     let instance = linker.instantiate(&mut store, &module)?;
 
     // The `Instance` gives us access to various exported functions and items,
-    // which we access here to pull out our `answer` exported function and
+    // which we access here to pull out our `func` exported function and
     // run it.
     let answer = instance
         .get_func(&mut store, func)
@@ -49,18 +52,44 @@ fn exec_checker_from_file(path: &str, func: &str) -> Result<Arc<Checker>, Box<dy
 
     answer.call(&mut store, ())?;
 
-    println!("DONE");
-    Ok(checker)
+    Ok(store)
 }
 
 
-fn create_linker<T>(engine: &Engine, checker: Arc<Checker>) -> Linker<T> {
+fn create_linker(engine: &Engine) -> Linker<Checker> {
     let mut linker = Linker::new(&engine);
     // any param goes after caller
-    let checker = checker.clone();
-    linker.func_wrap("host", "hello", move |caller: Caller<'_, T>| {
-        println!("this comes from host (rust)");
-        checker.failures.lock().unwrap().push("it failed :C".to_string()); //TODO
+    // let checker = checker.clone();
+    linker.func_wrap("checker", "fail", |mut caller: Caller<'_, Checker>, ptr: i32, len: i32| {
+
+        let string = get_string(&mut caller, ptr, len)?;
+        caller.data_mut().failures.push(string);
+
+        Ok(())
+
     }).unwrap();//TODO
+
     linker
+}
+
+fn get_string(caller: &mut Caller<'_, Checker>, ptr: i32, len: i32) -> Result<String, Trap> {
+    let mem = match caller.get_export("memory") {
+        Some(Extern::Memory(mem)) => mem,
+        _ => return Err(Trap::new("failed to find host memory")),
+    };
+            
+    let data = mem.data(caller)
+        .get(ptr as u32 as usize..)
+        .and_then(|arr| arr.get(..len as u32 as usize));
+    
+        
+    let string = match data {
+        Some(data) => match str::from_utf8(data) {
+            Ok(s) => s.to_owned(),
+            Err(_) => return Err(Trap::new("invalid utf-8")),
+        },
+        None => return Err(Trap::new("pointer/length out of bounds")),
+    };
+
+    Ok(string)
 }
