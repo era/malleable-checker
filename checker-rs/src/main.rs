@@ -1,11 +1,19 @@
 use std::error::Error;
 use wasmtime::*;
 
-fn main() -> Result<(), Box<dyn Error>> {
-   exec_checker_from_file("hello.wasm", "check")
+pub struct Checker {
+    pub failures: Vec<String>,
+    pub success: Vec<String>,
 }
 
-fn exec_checker_from_file(path: &str, func: &str) -> Result<(), Box<dyn Error>> {
+fn main() -> Result<(), Box<dyn Error>> {
+   exec_checker_from_file("hello.wasm", "check")?;
+   Ok(())
+}
+
+fn exec_checker_from_file(path: &str, func: &str) -> Result<Checker, Box<dyn Error>> {
+    let checker = Checker{failures: vec![], success: vec![]};
+
     // An engine stores and configures global compilation settings like
     // optimization level, enabled wasm features, etc.
     let engine = Engine::default();
@@ -40,7 +48,7 @@ fn exec_checker_from_file(path: &str, func: &str) -> Result<(), Box<dyn Error>> 
     answer.call(&mut store, ())?;
 
     println!("DONE");
-    Ok(())
+    Ok(checker)
 }
 
 
