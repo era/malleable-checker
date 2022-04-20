@@ -20,6 +20,13 @@ It exposes the following methods to the wasm env:
 ### ok(string)
 => ok(message) marks the assemption as success
 
+You need to expose the following function:
+
+### check()
+
+Check is the function the Rust will run
+
+
 ## Examples of the wasm code:
 
 
@@ -27,11 +34,12 @@ It exposes the following methods to the wasm env:
 We are using https://wasmtime.dev
 
 ## TODO list
-- [ ] Webservice exposing HTML and the CRUD
+- [ ] To think: instead of exposing ok and fail, should we just expose "assertXXX" methods that will operate on the dataset? that would avoid copying the dataset to the wasm env.
+- [ ] Webservice exposing HTML and the CRUD (big changes of just keep using the Python one)
 - [ ] Rust code to support hosting wasm checkers
 - [ ] Examples of checkers in some languages compiled to wasm
 - [ ] Run the checkers in a cron-like manner
-- [ ] Page with the failed/succeeded checkers
+- [ ] Page with the failed/succeeded checkers (e.g. implement fail and ok functions)
 - [ ] Allow users to create namespaces for checkers in order to organise it
 - [ ] Allow users to add runbooks to the checkers
 - [ ] Allow users to disable alarming from the UI
@@ -119,7 +127,3 @@ The project have two main parts:
 
 - alarm_assert: package defining the DSL for rules and how they should be executed
 - front_end: package responsible for the UI and also the front-end database (saving the rules, datasources, rules states and results).
-
-
-## TODO
-- Check if it's a good idea to run the custom code in a WASM env.

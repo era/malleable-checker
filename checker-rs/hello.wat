@@ -1,5 +1,6 @@
 (module
-  (func (export "answer") (result i32)
-     i32.const 42
+(import "host" "hello" (func $host_hello))  
+  (func (export "check")
+    call $host_hello
   )
 )
