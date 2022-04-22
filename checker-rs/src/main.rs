@@ -9,8 +9,38 @@ pub struct Checker {
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-   let store = exec_checker_from_file("examples/this_checker_always_fail.wasm", "check")?;
-   println!("checker state: {:?}", store.data());
+    println!("=======");
+    println!("running the checker");
+    let store = exec_checker_from_file("examples/this_checker_always_fail.wasm", "check")?;
+    println!("done");
+
+    println!("=======");
+
+    let checker = store.data();
+
+    if checker.success.len() > 0 {
+        println!("the following success messages were sent from the checker");
+        for success_message in &checker.success {
+            println!("{success_message}");
+        }
+        println!("=======");
+    } else {
+        println!("No succcess message found");
+        println!("=======");
+    }
+
+   
+    if checker.failures.len() > 0 {
+        println!("the following failure messages were sent from the checker");
+        for failure_message in &checker.failures {
+            println!("{failure_message}");
+        }
+        println!("=======");
+    } else {
+        println!("No failure message found");
+        println!("=======");
+    }
+
    Ok(())
 }
 
@@ -58,8 +88,7 @@ fn exec_checker_from_file(path: &str, func: &str) -> Result<Store<Checker>, Box<
 
 fn create_linker(engine: &Engine) -> Linker<Checker> {
     let mut linker = Linker::new(&engine);
-    // any param goes after caller
-    // let checker = checker.clone();
+
     linker.func_wrap("checker", "fail", fail).unwrap();//TODO
     linker.func_wrap("checker", "succeed", succeed).unwrap();//TODO
 
