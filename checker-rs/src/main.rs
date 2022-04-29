@@ -36,7 +36,7 @@ impl Debug for Checker {
 fn main() -> Result<(), Box<dyn Error>> {
     println!("=======");
     println!("running the checker");
-    let store = exec_checker_from_file("examples/this_checker_always_fail.wasm", "check")?;
+    let store = exec_checker_from_file("examples/read_from_stdin.wat", "check")?;
     println!("done");
 
     println!("=======");
