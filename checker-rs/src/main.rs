@@ -1,11 +1,35 @@
-use std::{error::Error, sync::Arc, sync::Mutex};
+use std::{error::Error};
+use std::fmt;
+use std::fmt::Debug;
 use std::str;
 use wasmtime::*;
+use wasmtime_wasi::{WasiCtx, sync::WasiCtxBuilder};
 
-#[derive(Debug, Default)]
+
 pub struct Checker {
     pub failures: Vec<String>,
     pub success: Vec<String>,
+    wasi: WasiCtx,
+}
+
+impl Default for Checker {
+    fn default() -> Self { 
+        let wasi = WasiCtxBuilder::new()
+        .inherit_stdio()
+        .inherit_args().expect("could not create wasi context")
+        .build();
+
+        Checker { failures: vec![], success: vec![], wasi: wasi}
+    }
+}
+
+impl Debug for Checker {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Checker")
+         .field("failures", &self.failures)
+         .field("success", &self.success)
+         .finish()
+    }
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -43,6 +67,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
    Ok(())
 }
+
 
 fn exec_checker_from_file(path: &str, func: &str) -> Result<Store<Checker>, Box<dyn Error>> {
     //checker holds the state of the checks (failed/success)
@@ -88,9 +113,11 @@ fn exec_checker_from_file(path: &str, func: &str) -> Result<Store<Checker>, Box<
 
 fn create_linker(engine: &Engine) -> Linker<Checker> {
     let mut linker = Linker::new(&engine);
+    wasmtime_wasi::add_to_linker(&mut linker, |state: &mut Checker| &mut state.wasi).unwrap();
 
     linker.func_wrap("checker", "fail", fail).unwrap();//TODO
     linker.func_wrap("checker", "succeed", succeed).unwrap();//TODO
+    
 
     linker
 }
