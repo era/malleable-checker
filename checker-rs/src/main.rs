@@ -9,6 +9,7 @@ use wasmtime_wasi::{WasiCtx, sync::WasiCtxBuilder};
 pub struct Checker {
     pub failures: Vec<String>,
     pub success: Vec<String>,
+    // https://docs.wasmtime.dev/examples-rust-wasi.html
     wasi: WasiCtx,
 }
 
@@ -118,7 +119,6 @@ fn create_linker(engine: &Engine) -> Linker<Checker> {
     linker.func_wrap("checker", "fail", fail).unwrap();//TODO
     linker.func_wrap("checker", "succeed", succeed).unwrap();//TODO
     
-
     linker
 }
 
