@@ -1,1 +1,0 @@
- docker run -p 5000:5000  -p 15672:15672 -p 5672:5672 checker sh /home/checker/run.sh
