@@ -1,3 +1,0 @@
-[submodule "front_end/server/static/ace-builds"]
-	path = front_end/server/static/ace-builds
-	url = https://github.com/ajaxorg/ace-builds.git
