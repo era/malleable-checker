@@ -1,13 +1,25 @@
 use std::{error::Error};
-
+use std::env;
 
 mod checker;
 mod memory;
 
 fn main() -> Result<(), Box<dyn Error>> {
+    let args: Vec<String> = env::args().collect();
+
+    if let Some(file) = args.get(1) {
+        run(file)?;
+    } else {
+        panic!("expecting path to checker file as first argument");
+    }
+
+   Ok(())
+}
+
+fn run(checker: &str) -> Result<(), Box<dyn Error>> {
     println!("=======");
     println!("running the checker");
-    let store = checker::exec_checker_from_file("examples/this_checker_always_fail.wat", "check")?;
+    let store = checker::exec_checker_from_file(checker, "check")?;
     println!("done");
 
     println!("=======");
@@ -37,5 +49,5 @@ fn main() -> Result<(), Box<dyn Error>> {
         println!("=======");
     }
 
-   Ok(())
+    Ok(())
 }
