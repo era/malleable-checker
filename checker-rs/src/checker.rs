@@ -32,7 +32,11 @@ impl Debug for Checker {
     }
 }
 
-
+//TODO: alloc first page of memory to be used inside wasm freely
+// second > pages are owned by Rust host and should not be used
+// in an idea world with https://github.com/WebAssembly/multi-memory support
+// we would have one memory for the communication between host <> guest
+// and another for the datasets
 pub fn exec_checker_from_file(path: &str, func: &str) -> Result<Store<Checker>, Box<dyn Error>> {
     //checker holds the state of the checks (failed/success)
     let checker = Checker::default();
@@ -118,3 +122,6 @@ fn get_string(caller: &mut Caller<'_, Checker>, ptr: i32, len: i32) -> Result<St
 
     Ok(string)
 }
+
+//TODO: create impl of getDataset() function to be used inside wasm
+// it returns the ptr of where the data is and the size of it

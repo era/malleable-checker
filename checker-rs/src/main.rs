@@ -7,7 +7,7 @@ mod memory;
 fn main() -> Result<(), Box<dyn Error>> {
     println!("=======");
     println!("running the checker");
-    let store = checker::exec_checker_from_file("examples/read_from_stdin.wat", "check")?;
+    let store = checker::exec_checker_from_file("examples/this_checker_always_fail.wat", "check")?;
     println!("done");
 
     println!("=======");
