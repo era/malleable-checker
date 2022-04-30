@@ -2,6 +2,7 @@ use std::{error::Error};
 
 
 mod checker;
+mod memory;
 
 fn main() -> Result<(), Box<dyn Error>> {
     println!("=======");
