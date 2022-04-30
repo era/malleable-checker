@@ -89,6 +89,8 @@ impl MemoryManager {
             None
         }
     }
+
+    //TODO write dataset as csv in the memory
 }
 
 
