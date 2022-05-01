@@ -8,6 +8,12 @@
 
 WARNING: Not even the README for the Rust/WebAssembly is ready and what is written here is mostly ideas/thoughts/things I need to remember while coding. For a better overview of the project scroll down until you find the Python version explanation.
 
+## About
+
+The main idea of the service is to allow users to write their own scripts to assert assumptions about their database. The user defines datasets (queries that will fetch data into the database), and run assertions on it. If they fail, a message is send to a queue and the user can write custom consumers of it in order to: page people, send message to slack, and so on.
+
+The Rust version uses WebAssembly to isolate the user script from the system. 
+
 ## System design
 
 A webservice written in Rust that executes your .wasm code. The host (written in Rust) executes a wasm module written by the user. The host injects the datasets the user requested together with methods to signal if the host should send an event to a queue (which will potentially trigger an alarm). The module can be written in any language that compiles to wasm.
