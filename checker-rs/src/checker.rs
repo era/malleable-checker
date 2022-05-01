@@ -5,6 +5,31 @@ use std::str;
 use wasmtime::*;
 use wasmtime_wasi::{WasiCtx, sync::WasiCtxBuilder};
 
+use crate::memory::{MemoryManager, WASM_PAGE_SIZE};
+
+#[derive(Debug, Default)]
+pub struct Datasets {
+    items: Vec<Dataset>
+}
+
+#[derive(Debug)]
+pub struct Dataset {
+    offset: usize,
+    size: usize,
+    name: String,
+}
+
+impl Datasets {
+    fn write_in_memory<T>(&mut self, mut store: Store<T>, instance: &Instance, buffer: &[u8], memory_manager: &mut MemoryManager) -> Store<T>  {
+        store = memory_manager.write(store, &instance, buffer).expect("could not write dataset into wasm memory");
+
+        let item = memory_manager.last_item().expect("dataset offset not pushed to memory manager");
+
+        self.items.push(Dataset{offset: item.offset, size: item.size, name:"test".into()});
+        store
+    }
+}
+
 pub struct Checker {
     pub failures: Vec<String>,
     pub success: Vec<String>,
@@ -38,6 +63,9 @@ impl Debug for Checker {
 // we would have one memory for the communication between host <> guest
 // and another for the datasets
 pub fn exec_checker_from_file(path: &str, func: &str) -> Result<Store<Checker>, Box<dyn Error>> {
+
+    let mut datasets = Datasets::default();
+
     //checker holds the state of the checks (failed/success)
     let checker = Checker::default();
 
@@ -64,6 +92,14 @@ pub fn exec_checker_from_file(path: &str, func: &str) -> Result<Store<Checker>, 
     // an `Instance` which we can actually poke at functions on.
     let instance = linker.instantiate(&mut store, &module)?;
 
+    let mut memory_manager = MemoryManager::new(WASM_PAGE_SIZE, "memory");
+
+    //TODO receive as paramter
+    let buffer = "1,cool;2,not_cool";
+    //write dataset
+
+    let mut store = datasets.write_in_memory(store, &instance, buffer.as_bytes(), &mut memory_manager);
+
     // The `Instance` gives us access to various exported functions and items,
     // which we access here to pull out our `func` exported function and
     // run it.
@@ -77,7 +113,6 @@ pub fn exec_checker_from_file(path: &str, func: &str) -> Result<Store<Checker>, 
 
     Ok(store)
 }
-
 
 fn create_linker(engine: &Engine) -> Linker<Checker> {
     let mut linker = Linker::new(&engine);

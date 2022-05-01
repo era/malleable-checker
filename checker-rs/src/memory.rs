@@ -1,5 +1,7 @@
 use wasmtime::{Memory, Store, MemoryType, Instance};
 
+
+pub const WASM_PAGE_SIZE: usize = 65536;
 #[derive(Debug)]
 pub struct Error{
     pub message: String,
@@ -50,7 +52,7 @@ impl MemoryManager {
     // write into the store memory the buffer
     // it also pushes the item to self.allocations. So if you want to know where your data was written
     // you can check self.last_item()
-    pub fn write<T>(mut self, mut store: Store<T>, instance: &Instance, buffer: &[u8]) -> Result<Store<T>, Error> {
+    pub fn write<T>(&mut self, mut store: Store<T>, instance: &Instance, buffer: &[u8]) -> Result<Store<T>, Error> {
         // for how to properly get offset read https://radu-matei.com/blog/practical-guide-to-wasm-memory/#passing-arrays-to-modules-using-wasmtime
         // going to do something bad here, every time we are asked to copy the buffer into the wasm memory
         // we are going to allocate more memory and put it there.
@@ -82,7 +84,7 @@ impl MemoryManager {
 
     // last_item returns the last allocated item in this memory manager
     // it clones the Item struct
-    pub fn last_item(self) -> Option<Item> {
+    pub fn last_item(&self) -> Option<Item> {
         if let Some(e) = self.allocations.last() {
             Some(Item {offset: e.offset, size: e.size})
         } else {
