@@ -133,6 +133,8 @@ fn add_functions(linker: &mut Linker<Checker>, datasets: Arc<Mutex<Datasets>>) -
             Ok(e) => e,
             Err(e) => return Err::<(i32, i32), Trap>(e),
         };
+        println!("{key}");
+        println!("{:?}", datasets);
         
         match datasets.lock().unwrap().items.get(&key) {
             Some(result) => Ok::<(i32, i32), Trap>((result.offset as i32, result.size as i32)), //TODO
@@ -152,8 +154,6 @@ fn succeed(mut caller: Caller<'_, Checker>, ptr: i32, len: i32) -> Result<(), Tr
     caller.data_mut().success.push(string);
     Ok(())
 }
-
-
 
 fn get_string(caller: &mut Caller<'_, Checker>, ptr: i32, len: i32) -> Result<String, Trap> {
     let mem = match caller.get_export("memory") {
@@ -176,6 +176,3 @@ fn get_string(caller: &mut Caller<'_, Checker>, ptr: i32, len: i32) -> Result<St
 
     Ok(string)
 }
-
-//TODO: create impl of getDataset() function to be used inside wasm
-// it returns the ptr of where the data is and the size of it
