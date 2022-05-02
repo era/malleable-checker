@@ -1,3 +1,4 @@
+#![feature(slice_flatten)]
 use std::{error::Error};
 use std::env;
 

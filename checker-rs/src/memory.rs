@@ -52,6 +52,7 @@ impl MemoryManager {
     // write into the store memory the buffer
     // it also pushes the item to self.allocations. So if you want to know where your data was written
     // you can check self.last_item()
+    // the layout is always | usize | <buffer content> |
     pub fn write<T>(&mut self, mut store: Store<T>, instance: &Instance, buffer: &[u8]) -> Result<Store<T>, Error> {
         // for how to properly get offset read https://radu-matei.com/blog/practical-guide-to-wasm-memory/#passing-arrays-to-modules-using-wasmtime
         // going to do something bad here, every time we are asked to copy the buffer into the wasm memory
@@ -64,9 +65,16 @@ impl MemoryManager {
 
         let memory = self.get(&mut store, instance)?;
 
-        let item = Item{ offset: self.last_alloc_ptr, size: buffer.len()};
+        [[1, 2, 3], [4, 5, 6]].flatten();
 
-        match memory.write(&mut store, item.offset, buffer) {
+        let item = Item{ offset: self.last_alloc_ptr, size: buffer.len() + 1};
+
+        let buffer_size =  buffer.len().to_string();
+        let size = buffer_size.as_bytes();
+
+        let buffer: &[u8] = &[size, buffer].concat();
+
+        match memory.write(&mut store, item.offset, buffer.into()) {
             Err(_) => { // MemoryAccessError
                 memory.grow(&mut store, 1).or_else(|err| Err(Error{message: err.to_string()}))?; //TODO very naive to assume we only need one more page
 
@@ -91,8 +99,6 @@ impl MemoryManager {
             None
         }
     }
-
-    //TODO write dataset as csv in the memory
 }
 
 
