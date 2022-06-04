@@ -10,7 +10,7 @@ WARNING: Not even the README for the Rust/WebAssembly is ready and what is writt
 
 ## About
 
-The main idea of the service is to allow users to write their own scripts to assert assumptions about their database. The user defines datasets (queries that will fetch data into the database), and run assertions on it. If they fail, a message is send to a queue and the user can write custom consumers of it in order to: page people, send message to slack, and so on.
+The main idea of the service is to allow users to write their own scripts to assert assumptions about their database. The user defines datasets (queries that will fetch data from the database), and run assertions on it. If the assertions fail, a message is send to a queue (e.g. rabbitmq).
 
 The Rust version uses WebAssembly to isolate the user script from the system. 
 
@@ -24,16 +24,16 @@ It exposes the following methods to the wasm env:
 => dataset(name) returns the data from the query with named `name`, you can use it to verify your assumptions about the state of your database 
 
 ### fail(string)
-=> fail(message) should be called when an assertion fails in your code, this will trigger an alarm.
+=> fail(message) should be called when an assertion fails in your code, this will send a failure message to a queue.
 
 ### ok(string)
-=> ok(message) marks the assemption as success
+=> ok(message) should be called when an assertion succeeds in your code
 
 You need to expose the following function:
 
 ### check()
 
-Check is the function the Rust will run
+Check is the function the Rust host will run
 
 
 ## Examples of the wasm code:
