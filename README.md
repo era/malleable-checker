@@ -42,6 +42,11 @@ Check is the function the Rust host will run
 ## Wasm runtime
 We are using https://wasmtime.dev
 
+### How we should use it?
+
+1. Web service (tokio's tower?) accepting wasm and input data, gets a worker from a pool of green threads (Tokio?) and executes the code
+2. The response has: status_code, error_description and output (of the wasm script)
+
 ## TODO list
 - [ ] To think: instead of exposing ok and fail, should we just expose "assertXXX" methods that will operate on the dataset? that would avoid copying the dataset to the wasm env.
 - [ ] Webservice exposing HTML and the CRUD (big changes of just keep using the Python one)
