@@ -46,6 +46,7 @@ We are using https://wasmtime.dev
 
 1. Web service (tokio's tower?) accepting wasm and input data, gets a worker from a pool of green threads (Tokio?) and executes the code
 2. The response has: status_code, error_description and output (of the wasm script)
+3. Wasm can read stdin and write to a stdout. Input from user is given as stdin to wasm env.
 
 ## TODO list
 - [ ] To think: instead of exposing ok and fail, should we just expose "assertXXX" methods that will operate on the dataset? that would avoid copying the dataset to the wasm env.
