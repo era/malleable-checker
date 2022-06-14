@@ -25,19 +25,14 @@ pub enum Var {
 }
 
 impl Datasets {
-    fn write_in_memory<T>(
-        &mut self,
-        instance: &Instance,
-        var: Var,
-        memory_manager: &mut MemoryManager<T>,
-    ) {
+    fn write_in_memory<T>(&mut self, var: Var, memory_manager: &mut MemoryManager<T>) {
         let (name, buffer) = match var {
             Var::Arr(name, buffer) => (name, buffer),
             _ => panic!("not supported yet"),
         };
 
         memory_manager
-            .write(&instance, &buffer)
+            .write(&buffer)
             .expect("could not write dataset into wasm memory");
 
         let item = memory_manager
@@ -121,7 +116,7 @@ pub fn exec_checker_from_file(path: &str, func: &str) -> Result<Store<Checker>, 
     // an `Instance` which we can actually poke at functions on.
     let instance = linker.instantiate(&mut store, &module)?;
 
-    let mut memory_manager = MemoryManager::new(WASM_PAGE_SIZE, "memory", store);
+    let mut memory_manager = MemoryManager::new(WASM_PAGE_SIZE, "memory", store, instance);
 
     //TODO receive as paramter
     let buffer = "1,cool;2,not_cool";
@@ -130,14 +125,12 @@ pub fn exec_checker_from_file(path: &str, func: &str) -> Result<Store<Checker>, 
     datasets
         .lock()
         .unwrap()
-        .write_in_memory(&instance, dataset, &mut memory_manager);
+        .write_in_memory(dataset, &mut memory_manager);
 
     // The `Instance` gives us access to various exported functions and items,
     // which we access here to pull out our `func` exported function and
     // run it.
-    memory_manager
-        .exec_func::<(), i32>(&instance, func, ())
-        .unwrap();
+    memory_manager.exec_func::<(), i32>(func, ()).unwrap();
 
     Ok(memory_manager.store)
 }
@@ -208,4 +201,3 @@ fn get_string(caller: &mut Caller<'_, Checker>, ptr: i32, len: i32) -> Result<St
 
     Ok(string)
 }
-

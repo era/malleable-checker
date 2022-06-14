@@ -9,7 +9,6 @@ pub struct Error {
 
 // super naive memory manager that just keeps adding in to the end of the
 // array without never looking back to reclaim memory
-#[derive(Default)]
 pub struct MemoryManager<T> {
     last_alloc_ptr: usize,
     // this is the memory we are importing from wasm
@@ -19,6 +18,7 @@ pub struct MemoryManager<T> {
     pub memory_name: String,
     pub allocations: Vec<Item>,
     pub store: Store<T>,
+    pub instance: Instance,
 }
 
 pub struct Item {
@@ -27,12 +27,13 @@ pub struct Item {
 }
 
 impl<T> MemoryManager<T> {
-    pub fn new(start_offset: usize, name: &str, store: Store<T>) -> Self {
+    pub fn new(start_offset: usize, name: &str, store: Store<T>, instance: Instance) -> Self {
         Self {
             last_alloc_ptr: start_offset,
             allocations: vec![],
             memory_name: name.to_string(),
             store: store,
+            instance: instance,
         }
     }
     pub fn new_memory<A>(&self, store: &mut Store<A>) -> Result<Memory, Error> {
@@ -47,8 +48,9 @@ impl<T> MemoryManager<T> {
     }
     // Memory should not be hold for long, the memory can be expanded or changed inside the wasm and our pointers
     // and reference to it will be invalid
-    pub fn get(&mut self, instance: &Instance) -> Result<Memory, Error> {
-        let memory = instance
+    pub fn get(&mut self) -> Result<Memory, Error> {
+        let memory = self
+            .instance
             .get_memory(&mut self.store, &self.memory_name)
             .ok_or(Error {
                 message: "failed to find `memory` export".to_owned(),
@@ -62,7 +64,7 @@ impl<T> MemoryManager<T> {
     // it also pushes the item to self.allocations. So if you want to know where your data was written
     // you can check self.last_item()
     // the layout is always | usize | <buffer content> |
-    pub fn write(&mut self, instance: &Instance, buffer: &[u8]) -> Result<(), Error> {
+    pub fn write(&mut self, buffer: &[u8]) -> Result<(), Error> {
         // for how to properly get offset read https://radu-matei.com/blog/practical-guide-to-wasm-memory/#passing-arrays-to-modules-using-wasmtime
         // going to do something bad here, every time we are asked to copy the buffer into the wasm memory
         // we are going to allocate more memory and put it there.
@@ -72,7 +74,7 @@ impl<T> MemoryManager<T> {
         // this is not so bad. But it should not be used in other contexts where we don't want
         // 'static' data.
 
-        let memory = self.get(instance)?;
+        let memory = self.get()?;
 
         [[1, 2, 3], [4, 5, 6]].flatten();
 
@@ -128,14 +130,14 @@ impl<T> MemoryManager<T> {
     // but Rust is not happy with () as R
     pub fn exec_func<P: WasmResults, R>(
         &mut self,
-        instance: &Instance,
         func_name: &str,
         params: P,
     ) -> Result<(), Error> {
         // The `Instance` gives us access to various exported functions and items,
         // which we access here to pull out our `func` exported function and
         // run it.
-        let func = instance
+        let func = self
+            .instance
             .get_func(&mut self.store, func_name)
             .expect(format!("`{func_name}` function was not exported or does not exist").as_str());
 
