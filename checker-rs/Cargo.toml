@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-wasmtime = "0.36"
+wasmtime = "0.37"
 # Using wasi so we can read the 
 # datasource from the disk
-wasmtime-wasi = "0.36"
+wasmtime-wasi = "0.37"
