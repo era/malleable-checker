@@ -76,8 +76,6 @@ impl<T> MemoryManager<T> {
 
         let memory = self.get()?;
 
-        [[1, 2, 3], [4, 5, 6]].flatten();
-
         let item = Item {
             offset: self.last_alloc_ptr,
             size: buffer.len() + 1,
