@@ -27,18 +27,17 @@ pub enum Var {
 impl Datasets {
     fn write_in_memory<T>(
         &mut self,
-        mut store: Store<T>,
         instance: &Instance,
         var: Var,
-        memory_manager: &mut MemoryManager,
-    ) -> Store<T> {
+        memory_manager: &mut MemoryManager<T>,
+    ) {
         let (name, buffer) = match var {
             Var::Arr(name, buffer) => (name, buffer),
             _ => panic!("not supported yet"),
         };
 
-        store = memory_manager
-            .write(store, &instance, &buffer)
+        memory_manager
+            .write(&instance, &buffer)
             .expect("could not write dataset into wasm memory");
 
         let item = memory_manager
@@ -52,8 +51,6 @@ impl Datasets {
                 size: item.size,
             },
         );
-
-        store
     }
 }
 
@@ -124,7 +121,7 @@ pub fn exec_checker_from_file(path: &str, func: &str) -> Result<Store<Checker>, 
     // an `Instance` which we can actually poke at functions on.
     let instance = linker.instantiate(&mut store, &module)?;
 
-    let mut memory_manager = MemoryManager::new(WASM_PAGE_SIZE, "memory");
+    let mut memory_manager = MemoryManager::new(WASM_PAGE_SIZE, "memory", store);
 
     //TODO receive as paramter
     let buffer = "1,cool;2,not_cool";
@@ -134,20 +131,20 @@ pub fn exec_checker_from_file(path: &str, func: &str) -> Result<Store<Checker>, 
         datasets
             .lock()
             .unwrap()
-            .write_in_memory(store, &instance, dataset, &mut memory_manager);
+            .write_in_memory(&instance, dataset, &mut memory_manager);
 
     // The `Instance` gives us access to various exported functions and items,
     // which we access here to pull out our `func` exported function and
     // run it.
     let answer = instance
-        .get_func(&mut store, func)
+        .get_func(&mut memory_manager.store, func)
         .expect(format!("`{func}` was not an exported function").as_str());
 
-    let answer = answer.typed::<(), _, _>(&store)?;
+    let answer = answer.typed::<(), _, _>(&memory_manager.store)?;
 
-    answer.call(&mut store, ())?;
+    answer.call(&mut memory_manager.store, ())?;
 
-    Ok(store)
+    Ok(memory_manager.store)
 }
 
 fn create_linker(engine: &Engine) -> Linker<Checker> {
