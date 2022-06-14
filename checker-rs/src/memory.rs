@@ -1,3 +1,4 @@
+use wasmtime::WasmResults;
 use wasmtime::{Instance, Memory, MemoryType, Store};
 
 pub const WASM_PAGE_SIZE: usize = 65536;
@@ -121,6 +122,37 @@ impl<T> MemoryManager<T> {
             })
         } else {
             None
+        }
+    }
+    //TODO we should be able to properly use the result type,
+    // but Rust is not happy with () as R
+    pub fn exec_func<P: WasmResults, R>(
+        &mut self,
+        instance: &Instance,
+        func_name: &str,
+        params: P,
+    ) -> Result<(), Error> {
+        // The `Instance` gives us access to various exported functions and items,
+        // which we access here to pull out our `func` exported function and
+        // run it.
+        let func = instance
+            .get_func(&mut self.store, func_name)
+            .expect(format!("`{func_name}` function was not exported or does not exist").as_str());
+
+        let func = match func.typed::<P, (), _>(&mut self.store) {
+            Ok(func) => func,
+            Err(e) => {
+                return Err(Error {
+                    message: e.to_string(),
+                })
+            }
+        };
+
+        match func.call(&mut self.store, params) {
+            Ok(result) => Ok(result),
+            Err(e) => Err(Error {
+                message: e.to_string(),
+            }),
         }
     }
 }

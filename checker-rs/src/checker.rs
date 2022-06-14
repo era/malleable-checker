@@ -127,22 +127,17 @@ pub fn exec_checker_from_file(path: &str, func: &str) -> Result<Store<Checker>, 
     let buffer = "1,cool;2,not_cool";
     let dataset = Var::Arr("test".into(), buffer.as_bytes().to_owned());
     //write dataset
-    let mut store =
-        datasets
-            .lock()
-            .unwrap()
-            .write_in_memory(&instance, dataset, &mut memory_manager);
+    datasets
+        .lock()
+        .unwrap()
+        .write_in_memory(&instance, dataset, &mut memory_manager);
 
     // The `Instance` gives us access to various exported functions and items,
     // which we access here to pull out our `func` exported function and
     // run it.
-    let answer = instance
-        .get_func(&mut memory_manager.store, func)
-        .expect(format!("`{func}` was not an exported function").as_str());
-
-    let answer = answer.typed::<(), _, _>(&memory_manager.store)?;
-
-    answer.call(&mut memory_manager.store, ())?;
+    memory_manager
+        .exec_func::<(), i32>(&instance, func, ())
+        .unwrap();
 
     Ok(memory_manager.store)
 }
