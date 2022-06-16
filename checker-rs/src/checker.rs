@@ -86,7 +86,12 @@ impl Debug for Checker {
 // in an idea world with https://github.com/WebAssembly/multi-memory support
 // we would have one memory for the communication between host <> guest
 // and another for the datasets
-pub fn exec_checker_from_file(path: &str, func: &str) -> Result<Store<Checker>, Box<dyn Error>> {
+// ds is a Hashmap of DatasetName and Dataset content (as CSV)
+pub fn exec_checker_from_file(
+    path: &str,
+    func: &str,
+    ds: HashMap<String, String>,
+) -> Result<Store<Checker>, Box<dyn Error>> {
     let datasets = Arc::new(Mutex::new(Datasets::default()));
 
     //checker holds the state of the checks (failed/success)
@@ -118,14 +123,14 @@ pub fn exec_checker_from_file(path: &str, func: &str) -> Result<Store<Checker>, 
 
     let mut memory_manager = MemoryManager::new(WASM_PAGE_SIZE, "memory", store, instance);
 
-    //TODO receive as paramter
-    let buffer = "1,cool;2,not_cool";
-    let dataset = Var::Arr("test".into(), buffer.as_bytes().to_owned());
-    //write dataset
-    datasets
-        .lock()
-        .unwrap()
-        .write_in_memory(dataset, &mut memory_manager);
+    for (var_name, content) in ds {
+        let dataset = Var::Arr(var_name, content.as_bytes().to_owned());
+        //write dataset
+        datasets
+            .lock()
+            .unwrap()
+            .write_in_memory(dataset, &mut memory_manager);
+    }
 
     // The `Instance` gives us access to various exported functions and items,
     // which we access here to pull out our `func` exported function and
