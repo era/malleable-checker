@@ -30,7 +30,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 .required(true),
         )
         .arg(
-            Arg::with_name("dataset")
+            Arg::with_name("dataset") // in the future we should allow several datasets and not only one
                 .short("d")
                 .long("dataset")
                 .value_name("CSV CONTENT")

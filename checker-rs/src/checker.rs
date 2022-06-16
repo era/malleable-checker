@@ -21,13 +21,13 @@ pub struct Dataset {
 }
 
 pub enum Var {
-    Arr(String, Vec<u8>),
+    Str(String, Vec<u8>),
 }
 
 impl Datasets {
     fn write_in_memory<T>(&mut self, var: Var, memory_manager: &mut MemoryManager<T>) {
         let (name, buffer) = match var {
-            Var::Arr(name, buffer) => (name, buffer),
+            Var::Str(name, buffer) => (name, buffer),
             _ => panic!("not supported yet"),
         };
 
@@ -46,6 +46,19 @@ impl Datasets {
                 size: item.size,
             },
         );
+    }
+
+    fn from_hash_map<T>(
+        &mut self,
+        ds: HashMap<String, String>,
+        memory_manager: &mut MemoryManager<T>,
+    ) {
+        for (var_name, content) in ds {
+            // assuming everything is a a string (right now a csv)
+            let dataset = Var::Str(var_name, content.as_bytes().to_owned());
+            //write dataset
+            self.write_in_memory(dataset, memory_manager);
+        }
     }
 }
 
@@ -90,7 +103,7 @@ impl Debug for Checker {
 pub fn exec_checker_from_file(
     path: &str,
     func: &str,
-    ds: HashMap<String, String>,
+    user_variables: HashMap<String, String>,
 ) -> Result<Store<Checker>, Box<dyn Error>> {
     let datasets = Arc::new(Mutex::new(Datasets::default()));
 
@@ -123,14 +136,11 @@ pub fn exec_checker_from_file(
 
     let mut memory_manager = MemoryManager::new(WASM_PAGE_SIZE, "memory", store, instance);
 
-    for (var_name, content) in ds {
-        let dataset = Var::Arr(var_name, content.as_bytes().to_owned());
-        //write dataset
-        datasets
-            .lock()
-            .unwrap()
-            .write_in_memory(dataset, &mut memory_manager);
-    }
+    //write dataset
+    datasets
+        .lock()
+        .unwrap()
+        .from_hash_map(user_variables, &mut memory_manager);
 
     // The `Instance` gives us access to various exported functions and items,
     // which we access here to pull out our `func` exported function and
@@ -205,4 +215,37 @@ fn get_string(caller: &mut Caller<'_, Checker>, ptr: i32, len: i32) -> Result<St
     };
 
     Ok(string)
+}
+
+#[cfg(test)]
+mod test_checker {
+    use super::*;
+
+    #[test]
+    fn test_executing_fail() {
+        let store = exec_checker_from_file(
+            "examples/this_checker_always_fail.wat",
+            "check",
+            HashMap::<String, String>::default(),
+        )
+        .unwrap();
+
+        let checker = store.data();
+        assert_eq!("This checker always fail", checker.failures.get(0).unwrap());
+    }
+    #[test]
+    fn test_executing_succeeds() {
+        let store = exec_checker_from_file(
+            "examples/this_checker_always_succeeds.wat",
+            "check",
+            HashMap::<String, String>::default(),
+        )
+        .unwrap();
+
+        let checker = store.data();
+        assert_eq!(
+            "This checker always succeed",
+            checker.success.get(0).unwrap()
+        );
+    }
 }
