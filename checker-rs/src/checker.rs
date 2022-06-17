@@ -1,13 +1,14 @@
+use crate::memory::{MemoryManager, WASM_PAGE_SIZE};
 use std::collections::HashMap;
 use std::error::Error;
 use std::fmt;
 use std::fmt::Debug;
+use std::fs::File;
+use std::io::prelude::*;
 use std::str;
 use std::sync::{Arc, Mutex};
 use wasmtime::*;
 use wasmtime_wasi::{sync::WasiCtxBuilder, WasiCtx};
-
-use crate::memory::{MemoryManager, WASM_PAGE_SIZE};
 
 #[derive(Debug, Default)]
 pub struct Datasets {
@@ -69,6 +70,23 @@ pub struct Checker {
     wasi: WasiCtx,
 }
 
+impl Checker {
+    fn new(
+        stdin: wasmtime_wasi::sync::file::File,
+        stdout: wasmtime_wasi::sync::file::File,
+    ) -> Self {
+        let wasi = WasiCtxBuilder::new()
+            .stdin(Box::new(stdin))
+            .stdout(Box::new(stdout))
+            .build();
+        Checker {
+            failures: vec![],
+            success: vec![],
+            wasi: wasi,
+        }
+    }
+}
+
 impl Default for Checker {
     fn default() -> Self {
         let wasi = WasiCtxBuilder::new()
@@ -105,10 +123,17 @@ pub fn exec_checker_from_file(
     func: &str,
     user_variables: HashMap<String, String>,
 ) -> Result<Store<Checker>, Box<dyn Error>> {
-    let datasets = Arc::new(Mutex::new(Datasets::default()));
-
     //checker holds the state of the checks (failed/success)
-    let checker = Checker::default();
+    exec_from_file(path, func, user_variables, Checker::default())
+}
+
+pub fn exec_from_file(
+    path: &str,
+    func: &str,
+    user_variables: HashMap<String, String>,
+    checker: Checker,
+) -> Result<Store<Checker>, Box<dyn Error>> {
+    let datasets = Arc::new(Mutex::new(Datasets::default()));
 
     // An engine stores and configures global compilation settings like
     // optimization level, enabled wasm features, etc.
@@ -233,6 +258,7 @@ mod test_checker {
         let checker = store.data();
         assert_eq!("This checker always fail", checker.failures.get(0).unwrap());
     }
+
     #[test]
     fn test_executing_succeeds() {
         let store = exec_checker_from_file(
@@ -247,5 +273,36 @@ mod test_checker {
             "This checker always succeed",
             checker.success.get(0).unwrap()
         );
+    }
+
+    #[test]
+    fn test_reads_dataset_and_outputs_to_stdout() {
+        let ds = "123,456,678,10,12,12";
+        let stdin = wasmtime_wasi::sync::file::File::from_cap_std(cap_std::fs::File::from_std(
+            File::create("stdin").unwrap(),
+        ));
+        let stdout = wasmtime_wasi::sync::file::File::from_cap_std(cap_std::fs::File::from_std(
+            File::create("stdout").unwrap(),
+        ));
+
+        let mut dataset = HashMap::<String, String>::default();
+        dataset.insert("test".to_string(), ds.to_string());
+        let checker = Checker::new(stdin, stdout);
+
+        let store = exec_from_file(
+            "examples/write_to_stdout_dataset_directly.wat",
+            "check",
+            dataset,
+            checker,
+        )
+        .unwrap();
+        let mut stdout = File::open("stdout").unwrap();
+        let mut contents = String::new();
+        stdout.read_to_string(&mut contents).unwrap();
+        let checker = store.data();
+        assert_eq!(ds, contents);
+
+        std::fs::remove_file("stdin").expect("File delete failed");
+        std::fs::remove_file("stdout").expect("File delete failed");
     }
 }

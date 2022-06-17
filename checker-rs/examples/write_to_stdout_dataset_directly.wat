@@ -10,8 +10,8 @@
 
     (func (export "check")
         ;; Creating a new io vector within linear memory
-        (i32.store (i32.const 0) (i32.const 65536))  ;; first dataset is always at 65536, the first item is the size of the dataset, the rest is the dataset in csv format
-        (i32.store (i32.const 4) (i32.const 19))  ;; iov.iov_len - The length of the csv, 17 = length of the csv; + 1 for the size
+        (i32.store (i32.const 0) (i32.const 65538))  ;; first dataset is always at 65536, the first item is the size of the dataset, the rest is the dataset in csv format
+        (i32.store (i32.const 4) (i32.const 20))  ;; iov.iov_len - The length of the csv, 17 = length of the csv; + 1 for the size
 
         (call $fd_write
             (i32.const 1) ;; file_descriptor - 1 for stdout

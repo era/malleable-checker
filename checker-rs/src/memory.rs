@@ -84,6 +84,10 @@ impl<T> MemoryManager<T> {
         let buffer_size = buffer.len().to_string();
         let size = buffer_size.as_bytes();
 
+        // TODO: need to insert a way to know that a field of the buffer ended
+        // example: I need a way to say size has 4 digits and ended, the next positions
+        // in the array are the proper buffer
+
         let buffer: &[u8] = &[size, buffer].concat();
 
         match memory.write(&mut self.store, item.offset, buffer.into()) {

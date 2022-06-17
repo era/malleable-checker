@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 clap = "2"
 #clap = { version = "3.0", features = ["derive"] }
+cap-std = "0.24"
 wasmtime = "0.37"
 # Using wasi so we can read the 
 # datasource from the disk
