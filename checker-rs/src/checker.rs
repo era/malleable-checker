@@ -194,14 +194,12 @@ fn add_functions(linker: &mut Linker<Checker>, datasets: Arc<Mutex<Datasets>>) -
                     Ok(e) => e,
                     Err(e) => return Err::<(i32, i32), Trap>(e),
                 };
-                println!("{key}");
-                println!("{:?}", datasets);
 
                 match datasets.lock().unwrap().items.get(&key) {
                     Some(result) => {
-                        Ok::<(i32, i32), Trap>((result.offset as i32, result.size as i32))
+                        Ok::<(i32, i32), Trap>((result.offset as i32, (result.size - 1) as i32))
                     } //TODO
-                    None => Err(Trap::new("no dataset with that name")),
+                    None => Err(Trap::new(format!("no dataset with name {key}"))),
                 }
             },
         )
@@ -296,6 +294,7 @@ mod test_checker {
             checker,
         )
         .unwrap();
+
         let mut stdout = File::open("stdout").unwrap();
         let mut contents = String::new();
         stdout.read_to_string(&mut contents).unwrap();
@@ -304,5 +303,17 @@ mod test_checker {
 
         std::fs::remove_file("stdin").expect("File delete failed");
         std::fs::remove_file("stdout").expect("File delete failed");
+    }
+
+    #[test]
+    fn test_get_dataset() {
+        let ds = "123,456,678,10,12,12";
+
+        let mut dataset = HashMap::<String, String>::default();
+        dataset.insert("test".to_string(), ds.to_string());
+        let store = exec_checker_from_file("examples/reading_ds.wat", "check", dataset).unwrap();
+
+        let checker = store.data();
+        assert_eq!(ds, checker.success.get(0).unwrap());
     }
 }

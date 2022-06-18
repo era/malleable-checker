@@ -1,7 +1,7 @@
 use wasmtime::WasmResults;
 use wasmtime::{Instance, Memory, MemoryType, Store};
 
-pub const WASM_PAGE_SIZE: usize = 65536;
+pub const WASM_PAGE_SIZE: usize = 65538;
 #[derive(Debug)]
 pub struct Error {
     pub message: String,
@@ -81,15 +81,6 @@ impl<T> MemoryManager<T> {
             size: buffer.len() + 1,
         };
 
-        let buffer_size = buffer.len().to_string();
-        let size = buffer_size.as_bytes();
-
-        // TODO: need to insert a way to know that a field of the buffer ended
-        // example: I need a way to say size has 4 digits and ended, the next positions
-        // in the array are the proper buffer
-
-        let buffer: &[u8] = &[size, buffer].concat();
-
         match memory.write(&mut self.store, item.offset, buffer.into()) {
             Err(_) => {
                 // MemoryAccessError
@@ -106,9 +97,9 @@ impl<T> MemoryManager<T> {
                             message: err.to_string(),
                         })
                     })?;
-                self.last_alloc_ptr += item.size + 1;
+                self.last_alloc_ptr += item.size;
             }
-            _ => self.last_alloc_ptr += item.size + 1,
+            _ => self.last_alloc_ptr += item.size,
         };
 
         self.allocations.push(item);
