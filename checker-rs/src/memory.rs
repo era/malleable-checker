@@ -10,7 +10,7 @@ pub struct Error {
 // super naive memory manager that just keeps adding in to the end of the
 // array without never looking back to reclaim memory
 pub struct MemoryManager<T> {
-    last_alloc_ptr: usize,
+    last_alloc_ptr: usize, //TODO check type
     // this is the memory we are importing from wasm
     // we probably want to keep two, one for communicating back and forth with host <> guest
     // the other one to give the datasets to the guest (wasm env)
