@@ -1,0 +1,7 @@
+record arrpointer {
+  start: u32,
+  size: u32,
+}
+succeed: func(message: string)
+fail: func(message: string)
+datasets: func(name: string) -> arrpointer
