@@ -61,7 +61,7 @@ fn run(checker: &str, dataset: HashMap<String, String>) -> Result<(), Box<dyn Er
 
     let checker = store.data();
 
-    if checker.success.len() > 0 {
+    if !checker.success.is_empty() {
         println!("the following success messages were sent from the checker");
         for success_message in &checker.success {
             println!("{success_message}");
@@ -72,7 +72,7 @@ fn run(checker: &str, dataset: HashMap<String, String>) -> Result<(), Box<dyn Er
         println!("=======");
     }
 
-    if checker.failures.len() > 0 {
+    if !checker.failures.is_empty() {
         println!("the following failure messages were sent from the checker");
         for failure_message in &checker.failures {
             println!("{failure_message}");

@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use std::error::Error;
 use std::fmt;
 use std::fmt::Debug;
-use std::fs::File;
+
 use std::io::prelude::*;
 use std::str;
 use std::sync::{Arc, Mutex};
@@ -82,7 +82,7 @@ impl Checker {
         Checker {
             failures: vec![],
             success: vec![],
-            wasi: wasi,
+            wasi,
         }
     }
 }
@@ -98,7 +98,7 @@ impl Default for Checker {
         Checker {
             failures: vec![],
             success: vec![],
-            wasi: wasi,
+            wasi,
         }
     }
 }
@@ -176,13 +176,13 @@ pub fn exec_from_file(
 }
 
 fn create_linker(engine: &Engine) -> Linker<Checker> {
-    let mut linker = Linker::new(&engine);
+    let mut linker = Linker::new(engine);
     wasmtime_wasi::add_to_linker(&mut linker, |state: &mut Checker| &mut state.wasi).unwrap();
 
     linker
 }
 
-fn add_functions(linker: &mut Linker<Checker>, datasets: Arc<Mutex<Datasets>>) -> () {
+fn add_functions(linker: &mut Linker<Checker>, datasets: Arc<Mutex<Datasets>>) {
     linker.func_wrap("checker", "fail", fail).unwrap(); //TODO
     linker.func_wrap("checker", "succeed", succeed).unwrap(); //TODO
     linker
@@ -298,7 +298,7 @@ mod test_checker {
         let mut stdout = File::open("stdout").unwrap();
         let mut contents = String::new();
         stdout.read_to_string(&mut contents).unwrap();
-        let checker = store.data();
+        let _checker = store.data();
         assert_eq!(ds, contents);
 
         std::fs::remove_file("stdin").expect("File delete failed");

@@ -32,8 +32,8 @@ impl<T> MemoryManager<T> {
             last_alloc_ptr: start_offset,
             allocations: vec![],
             memory_name: name.to_string(),
-            store: store,
-            instance: instance,
+            store,
+            instance,
         }
     }
     pub fn new_memory<A>(&self, store: &mut Store<A>) -> Result<Memory, Error> {
@@ -81,22 +81,17 @@ impl<T> MemoryManager<T> {
             size: buffer.len() + 1,
         };
 
-        match memory.write(&mut self.store, item.offset, buffer.into()) {
+        match memory.write(&mut self.store, item.offset, buffer) {
             Err(_) => {
                 // MemoryAccessError
-                memory.grow(&mut self.store, 1).or_else(|err| {
-                    Err(Error {
+                memory.grow(&mut self.store, 1).map_err(|err| Error {
                         message: err.to_string(),
-                    })
-                })?; //TODO very naive to assume we only need one more page
+                    })?; //TODO very naive to assume we only need one more page
 
                 memory
-                    .write(&mut self.store, item.offset, buffer)
-                    .or_else(|err| {
-                        Err(Error {
+                    .write(&mut self.store, item.offset, buffer).map_err(|err| Error {
                             message: err.to_string(),
-                        })
-                    })?;
+                        })?;
                 self.last_alloc_ptr += item.size;
             }
             _ => self.last_alloc_ptr += item.size,
@@ -110,14 +105,10 @@ impl<T> MemoryManager<T> {
     // last_item returns the last allocated item in this memory manager
     // it clones the Item struct
     pub fn last_item(&self) -> Option<Item> {
-        if let Some(e) = self.allocations.last() {
-            Some(Item {
+        self.allocations.last().map(|e| Item {
                 offset: e.offset,
                 size: e.size,
             })
-        } else {
-            None
-        }
     }
     //TODO we should be able to properly use the result type,
     // but Rust is not happy with () as R
@@ -132,7 +123,7 @@ impl<T> MemoryManager<T> {
         let func = self
             .instance
             .get_func(&mut self.store, func_name)
-            .expect(format!("`{func_name}` function was not exported or does not exist").as_str());
+            .unwrap_or_else(|| panic!("`{func_name}` function was not exported or does not exist"));
 
         let func = match func.typed::<P, (), _>(&mut self.store) {
             Ok(func) => func,
