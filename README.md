@@ -1,7 +1,7 @@
 # Probably not doing anything here anymore
-I wanted to play a bit with given the ability for the user to easily write code to use the software I was creating, instead of having to always use a pre-made user interface. I started this letting users writing python and in the backend I would parse the AST and remove whatever I considered harmful. Also the code for safety should have been running on a throw-away container.
+I wanted to play a bit with given the ability for the user to easily write code to use the software I was creating, instead of always using a pre-made user interface. I started this by letting users write python and in the backend I would parse the AST and remove whatever I considered harmful. Also, the code for safety should have been running on a throw-away container.
 
-I decided to stop that and use WASM. So users could write their code in any language that compiled to wasm. Since wasm runs by default in a Sandbox, I could define exactly what the user code had access to.
+I decided to stop that and use WASM. So users could write their code in any language that compiles to wasm. Since wasm runs by default in a Sandbox, I could define precisely what the user code had access to.
 
 I played with it a lot, broke a couple of things going forward and made a mess with it. It was fun. But I'm taking what I learnt (the dos and dont's) into (DataBook)[https://codeberg.org/era/databook/] which uses wit (and wit-bindgen) to avoid having to write all the boilerplate code which I played here. So if anything in this project was of interest for you, you should check Databook! Maybe there is something interesting there too (and the code there is more carefully written than this here which mantra was "let me throw some code here to see how this works").
 
